@@ -16,6 +16,7 @@ void Flea3Camera::Connect() {
           serial_ + " not found. " + AvailableDevice());
   ConnectDevice(&guid);
   EnableMetadata();
+  camera_info_ = GetCameraInfo();
 }
 
 std::string Flea3Camera::AvailableDevice() {
@@ -56,7 +57,7 @@ void Flea3Camera::StopCapture() {
   }
 }
 
-void Flea3Camera::Configure(Config& config) {}
+void Flea3Camera::Configure(Config& config) { camera_info_ = GetCameraInfo(); }
 
 void Flea3Camera::EnableMetadata() {
   EmbeddedImageInfo info;
@@ -100,6 +101,37 @@ bool Flea3Camera::GrabImage(sensor_msgs::Image& image_msg,
                                 image.GetData());
 }
 
+CameraInfo Flea3Camera::GetCameraInfo() {
+  CameraInfo camera_info;
+  PGERROR(camera_.GetCameraInfo(&camera_info), "Failed to get camera info");
+  return camera_info;
+}
+
+float Flea3Camera::GetCameraTemperature() {
+  const auto prop = GetProperty(TEMPERATURE);
+  // It returns values of 10 * K
+  return prop.valueA / 10.0f - 273.15f;
+}
+
+float Flea3Camera::GetCameraFrameRate() {
+  const auto prop = GetProperty(FRAME_RATE);
+  return prop.absValue;
+}
+
+Property Flea3Camera::GetProperty(const PropertyType& prop_type) {
+  Property prop;
+  prop.type = prop_type;
+  PGERROR(camera_.GetProperty(&prop), "Failed to get property");
+  return prop;
+}
+
+PropertyInfo Flea3Camera::GetPropertyInfo(const PropertyType& prop_type) {
+  PropertyInfo prop_info;
+  prop_info.type = prop_type;
+  PGERROR(camera_.GetPropertyInfo(&prop_info), "Failed to get property info");
+  return prop_info;
+}
+
 std::string BayerFormatToEncoding(const BayerTileFormat& bayer_format) {
   using namespace sensor_msgs::image_encodings;
   switch (bayer_format) {
@@ -136,6 +168,49 @@ void HandleError(const Error& error, const std::string& message,
     throw std::runtime_error(message + " | " + error_type + " " + error_desc +
                              " | " + func_name);
   }
+}
+
+void printPropertyInfo(const PropertyInfo& prop_info,
+                       const std::string& prop_name) {
+  std::cout << "* Property Info: " << prop_name;
+
+  if (!prop_info.present) {
+    std::cout << " does not exist" << std::endl;
+    return;
+  }
+
+  std::cout << std::boolalpha;
+  std::cout << ", on/off: " << prop_info.onOffSupported
+            << ", auto: " << prop_info.autoSupported
+            << ", manual: " << prop_info.manualSupported
+            << ", one push: " << prop_info.onePushSupported;
+
+  if (!prop_info.readOutSupported) return;
+
+  if (!prop_info.absValSupported) {
+    std::cout << ", [abs]"
+              << " min: " << prop_info.absMin << ", max: " << prop_info.absMax;
+  } else {
+    std::cout << ", [int]"
+              << " min: " << prop_info.min << ", max: " << prop_info.max;
+  }
+  std::cout << std::endl;
+}
+
+void printProperty(const Property& prop, const std::string& prop_name) {
+  std::cout << "* Property: " << prop_name;
+
+  if (!prop.present) {
+    std::cout << " does not exist" << std::endl;
+    return;
+  }
+
+  std::cout << std::boolalpha;
+  std::cout << ", on/off: " << prop.onOff << ", auto: " << prop.autoManualMode
+            << ", one push: " << prop.onePush << ", value A: " << prop.valueA
+            << ", value B: " << prop.valueB << ", abs: " << prop.absValue;
+
+  std::cout << std::endl;
 }
 
 }  // namespace flea3

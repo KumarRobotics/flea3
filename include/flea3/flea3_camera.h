@@ -32,6 +32,12 @@ class Flea3Camera {
   void StarCapture();
   void StopCapture();
   std::string AvailableDevice();
+  FlyCapture2::CameraInfo GetCameraInfo();
+  FlyCapture2::Property GetProperty(const FlyCapture2::PropertyType& prop_type);
+  FlyCapture2::PropertyInfo GetPropertyInfo(
+      const FlyCapture2::PropertyType& prop_type);
+  float GetCameraFrameRate();
+  float GetCameraTemperature();
 
   FlyCapture2::BusManager bus_manager_;
   FlyCapture2::Camera camera_;
@@ -43,6 +49,11 @@ class Flea3Camera {
 void HandleError(const FlyCapture2::Error& error,
                  const std::string& message = "",
                  const std::string& func_name = "");
+
+void PrintPropertyInfo(const FlyCapture2::PropertyInfo& prop_info,
+                       const std::string& prop_name);
+void PrintProperty(const FlyCapture2::Property& prop,
+                   const std::string& prop_name);
 
 std::string BayerFormatToEncoding(
     const FlyCapture2::BayerTileFormat& bayer_format);
