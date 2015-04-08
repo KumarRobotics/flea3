@@ -40,9 +40,16 @@ class Flea3Camera {
   float GetCameraFrameRate();
   float GetCameraTemperature();
 
-  void SetWhiteBalanceRedBlue(bool& auto_white_balance, int& red, int& blue);
+  void SetWhiteBalanceRedBlue(bool auto_white_balance, int& red, int& blue);
   void SetVideoModeAndFrameRate(int& video_mode, double& frame_rate);
+  void SetExposure(bool auto_exposure, double& exposure);
+  void SetShutter(bool auto_shutter, double& shutter);
+  void SetGain(bool auto_gain, double& gain);
+  void SetBrightness(double& brightness);
+  void SetGamma(double& gamma);
   void WriteRegister(unsigned address, unsigned value);
+  void SetProperty(const FlyCapture2::PropertyType& prop_type, bool auto_on,
+                   double& value);
 
   FlyCapture2::BusManager bus_manager_;
   FlyCapture2::Camera camera_;

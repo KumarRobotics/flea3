@@ -67,6 +67,11 @@ void Flea3Camera::Configure(Config& config) {
   camera_info_ = GetCameraInfo();
   SetWhiteBalanceRedBlue(config.auto_white_balance, config.wb_red,
                          config.wb_blue);
+  SetExposure(config.auto_exposure, config.exposure);
+  SetShutter(config.auto_shutter, config.shutter);
+  SetGain(config.auto_gain, config.gain);
+  SetBrightness(config.brightness);
+  SetGamma(config.gamma);
   config_ = config;
 }
 
@@ -175,7 +180,7 @@ CameraInfo Flea3Camera::GetCameraInfo() {
   return camera_info;
 }
 
-void Flea3Camera::SetWhiteBalanceRedBlue(bool& auto_white_balance, int& red,
+void Flea3Camera::SetWhiteBalanceRedBlue(bool auto_white_balance, int& red,
                                          int& blue) {
   if (camera_info_.isColorCamera) {
     // Register for white balance
@@ -201,6 +206,47 @@ void Flea3Camera::SetWhiteBalanceRedBlue(bool& auto_white_balance, int& red,
     WriteRegister(white_balance_addr, value);
   }
 }
+
+void Flea3Camera::SetProperty(const PropertyType& prop_type, bool auto_on,
+                              double& value) {
+  auto prop_info = GetPropertyInfo(prop_type);
+  if (prop_info.present) {
+    Property prop;
+    prop.type = prop_type;
+    prop.autoManualMode = (auto_on && prop_info.autoSupported);
+    prop.absControl = prop_info.absValSupported;
+    prop.onOff = prop_info.onOffSupported;
+
+    value = std::max(std::min(value, static_cast<double>(prop_info.absMax)),
+                     static_cast<double>(prop_info.absMin));
+    prop.absValue = value;
+    PGERROR(camera_.SetProperty(&prop), "Failed to set property");
+
+    if (auto_on) {
+      value = GetProperty(prop_type).absValue;
+    }
+  }
+}
+
+void Flea3Camera::SetExposure(bool auto_exposure, double& exposure) {
+  SetProperty(AUTO_EXPOSURE, auto_exposure, exposure);
+}
+
+void Flea3Camera::SetShutter(bool auto_shutter, double& shutter) {
+  auto shutter_ms = 1000.0 * shutter;
+  SetProperty(SHUTTER, auto_shutter, shutter_ms);
+  shutter = shutter_ms / 1000.0;
+}
+
+void Flea3Camera::SetGain(bool auto_gain, double& gain) {
+  SetProperty(GAIN, auto_gain, gain);
+}
+
+void Flea3Camera::SetBrightness(double& brightness) {
+  SetProperty(BRIGHTNESS, false, brightness);
+}
+
+void Flea3Camera::SetGamma(double& gamma) { SetProperty(GAMMA, false, gamma); }
 
 void Flea3Camera::WriteRegister(unsigned address, unsigned value) {
   PGERROR(camera_.WriteRegister(address, value), "Failed to write register");
