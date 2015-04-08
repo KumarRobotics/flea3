@@ -16,6 +16,9 @@ class Flea3Ros : public camera_base::CameraRosBase {
   bool Grab(const sensor_msgs::ImagePtr& image_msg,
             const sensor_msgs::CameraInfoPtr& cinfo_msg) override;
 
+  void Stop() { flea3_.StopCapture(); }
+  void Start() { flea3_.StarCapture(); }
+
  private:
   Flea3Camera flea3_;
 };

@@ -10,6 +10,10 @@ Flea3Camera::Flea3Camera(const std::string& serial) : serial_(serial) {
   Connect();
 }
 
+Flea3Camera::~Flea3Camera() {
+  DisconnectDevice();
+}
+
 void Flea3Camera::Connect() {
   PGRGuid guid;
   PGERROR(bus_manager_.GetCameraFromSerialNumber(serial_id(), &guid),
@@ -46,7 +50,8 @@ void Flea3Camera::DisconnectDevice() {
 void Flea3Camera::StarCapture() {
   if (camera_.IsConnected() && !capturing_) {
     PGERROR(camera_.StartCapture(), "Failed to start capture");
-    capturing_ = false;
+    capturing_ = true;
+    std::cout << "StartCapture" << std::endl;
   }
 }
 
@@ -54,10 +59,17 @@ void Flea3Camera::StopCapture() {
   if (camera_.IsConnected() && capturing_) {
     PGERROR(camera_.StopCapture(), "Failed to stop capture");
     capturing_ = false;
+    std::cout << "StopCapture" << std::endl;
   }
 }
 
-void Flea3Camera::Configure(Config& config) { camera_info_ = GetCameraInfo(); }
+void Flea3Camera::Configure(Config& config) {
+  // Update CameraInfo here
+  camera_info_ = GetCameraInfo();
+  PGERROR(camera_.SetVideoModeAndFrameRate(VIDEOMODE_1280x960Y8, FRAMERATE_30),
+          "Failed to set video mode and frame rate");
+  std::cout << "Video mode set" << std::endl;
+}
 
 void Flea3Camera::EnableMetadata() {
   EmbeddedImageInfo info;
@@ -70,6 +82,10 @@ void Flea3Camera::EnableMetadata() {
   info.frameCounter.onOff = true;
   PGERROR(camera_.SetEmbeddedImageInfo(&info), "Failed to enable metadata");
 }
+
+void Flea3Camera::SetVideoMode(int& video_mode) {}
+
+void Flea3Camera::SetFrameRate(double& frame_rate) {}
 
 bool Flea3Camera::GrabImage(sensor_msgs::Image& image_msg,
                             sensor_msgs::CameraInfo& cinfo_msg) {
@@ -105,6 +121,10 @@ CameraInfo Flea3Camera::GetCameraInfo() {
   CameraInfo camera_info;
   PGERROR(camera_.GetCameraInfo(&camera_info), "Failed to get camera info");
   return camera_info;
+}
+
+void Flea3Camera::SetWhiteBalance(int& red, int& blue) {
+  // Implement later
 }
 
 float Flea3Camera::GetCameraTemperature() {

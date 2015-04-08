@@ -3,15 +3,19 @@
 namespace flea3 {
 
 void SingleNode::Acquire() {
+  std::cout << "Acquire" << std::endl;
   while (is_acquire() && ros::ok()) {
-    ROS_INFO("Acquire not implemented");
+    flea3_ros_.PublishCamera(ros::Time::now());
     Sleep();
   }
 }
 
 void SingleNode::Setup(Config &config) {
-  //
-  ROS_INFO("Setup not implemented");
+  std::cout << "Setup" << std::endl;
+  flea3_ros_.set_fps(config.fps);
+  flea3_ros_.Stop();
+  flea3_ros_.camera().Configure(config);
+  flea3_ros_.Start();
 }
 
 }  // namespace flea3
