@@ -49,7 +49,6 @@ void Flea3Camera::StarCapture() {
   if (camera_.IsConnected() && !capturing_) {
     PGERROR(camera_.StartCapture(), "Failed to start capture");
     capturing_ = true;
-    std::cout << "StartCapture" << std::endl;
   }
 }
 
@@ -57,7 +56,6 @@ void Flea3Camera::StopCapture() {
   if (camera_.IsConnected() && capturing_) {
     PGERROR(camera_.StopCapture(), "Failed to stop capture");
     capturing_ = false;
-    std::cout << "StopCapture" << std::endl;
   }
 }
 
