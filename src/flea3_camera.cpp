@@ -65,6 +65,9 @@ void Flea3Camera::Configure(Config& config) {
   // Update CameraInfo here
   SetVideoModeAndFrameRate(config.video_mode, config.fps);
   camera_info_ = GetCameraInfo();
+  SetWhiteBalanceRedBlue(config.auto_white_balance, config.wb_red,
+                         config.wb_blue);
+  config_ = config;
 }
 
 void Flea3Camera::EnableMetadata() {
@@ -161,7 +164,6 @@ bool Flea3Camera::GrabImage(sensor_msgs::Image& image_msg,
   } else {
     encoding = PixelFormatToEncoding(bits_per_pixel);
   }
-  std::cout << encoding << std::endl;
   return sensor_msgs::fillImage(image_msg, encoding, image.GetRows(),
                                 image.GetCols(), image.GetStride(),
                                 image.GetData());
@@ -173,8 +175,35 @@ CameraInfo Flea3Camera::GetCameraInfo() {
   return camera_info;
 }
 
-void Flea3Camera::SetWhiteBalance(int& red, int& blue) {
-  // Implement later
+void Flea3Camera::SetWhiteBalanceRedBlue(bool& auto_white_balance, int& red,
+                                         int& blue) {
+  if (camera_info_.isColorCamera) {
+    // Register for white balance
+    unsigned white_balance_addr = 0x80C;
+    unsigned enable = 1 << 31;
+    unsigned value = 1 << 25;  // Turn on
+    if (auto_white_balance) {
+      value |= 1 << 24;  // Auto
+    } else {
+      value |= blue << 12 | red;
+    }
+
+    if (config_.auto_white_balance && auto_white_balance) {
+      // Only changes red and blue, just update those values
+      const auto prop = GetProperty(WHITE_BALANCE);
+      red = prop.valueA;
+      blue = prop.valueB;
+    }
+
+    // First enable
+    WriteRegister(white_balance_addr, enable);
+    // Then write to it
+    WriteRegister(white_balance_addr, value);
+  }
+}
+
+void Flea3Camera::WriteRegister(unsigned address, unsigned value) {
+  PGERROR(camera_.WriteRegister(address, value), "Failed to write register");
 }
 
 float Flea3Camera::GetCameraTemperature() {

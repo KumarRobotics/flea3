@@ -40,13 +40,15 @@ class Flea3Camera {
   float GetCameraFrameRate();
   float GetCameraTemperature();
 
-  void SetWhiteBalance(int& red, int& blue);
+  void SetWhiteBalanceRedBlue(bool& auto_white_balance, int& red, int& blue);
   void SetVideoModeAndFrameRate(int& video_mode, double& frame_rate);
+  void WriteRegister(unsigned address, unsigned value);
 
   FlyCapture2::BusManager bus_manager_;
   FlyCapture2::Camera camera_;
   FlyCapture2::CameraInfo camera_info_;
   std::string serial_;
+  Config config_;
   bool capturing_{false};
 };
 
