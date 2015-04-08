@@ -11,6 +11,12 @@
   <arg name="calib_url" default="file://${ROS_HOME}/camera_info/$(arg camera_name).yaml"/>
   <arg name="fps" default="$(arg rate)"/>
 
+  <arg name="video_mode" default="0"/>
+  <arg name="auto_exposure" default="true"/>
+  <arg name="auto_shutter" default="true"/>
+  <arg name="auto_gain" default="true"/>
+  <arg name="auto_white_balance" default="true"/>
+
   <!-- Node Settings -->
   <arg name="output" default="screen"/>
   <arg name="proc" default="false"/>
