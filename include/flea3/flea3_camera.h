@@ -12,6 +12,8 @@ namespace flea3 {
 
 class Flea3Camera {
  public:
+  using Config = ::flea3::Flea3DynConfig;
+
   explicit Flea3Camera(const std::string& serial);
 
   const std::string& serial() const { return serial_; }
@@ -20,18 +22,31 @@ class Flea3Camera {
   bool GrabImage(sensor_msgs::Image& image_msg,
                  sensor_msgs::CameraInfo& cinfo_msg);
 
-  void ConnectDevice();
-  std::string AvailableDevice();
+  void Connect();
+  void Configure(Config& config);
 
  private:
+  void EnableMetadata();
+  void ConnectDevice(FlyCapture2::PGRGuid* guid);
+  void DisconnectDevice();
+  void StarCapture();
+  void StopCapture();
+  std::string AvailableDevice();
+
   FlyCapture2::BusManager bus_manager_;
   FlyCapture2::Camera camera_;
+  FlyCapture2::CameraInfo camera_info_;
   std::string serial_;
+  bool capturing_{false};
 };
 
 void HandleError(const FlyCapture2::Error& error,
                  const std::string& message = "",
                  const std::string& func_name = "");
+
+std::string BayerFormatToEncoding(
+    const FlyCapture2::BayerTileFormat& bayer_format);
+std::string PixelFormatToEncoding(unsigned bits_per_pixel);
 }  // namespace flea3
 
 #endif  // FLEA3_FLEA3_H_
