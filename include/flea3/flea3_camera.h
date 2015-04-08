@@ -41,8 +41,7 @@ class Flea3Camera {
   float GetCameraTemperature();
 
   void SetWhiteBalance(int& red, int& blue);
-  void SetVideoMode(int& video_mode);
-  void SetFrameRate(double& frame_rate);
+  void SetVideoModeAndFrameRate(int& video_mode, double& frame_rate);
 
   FlyCapture2::BusManager bus_manager_;
   FlyCapture2::Camera camera_;

@@ -10,9 +10,7 @@ Flea3Camera::Flea3Camera(const std::string& serial) : serial_(serial) {
   Connect();
 }
 
-Flea3Camera::~Flea3Camera() {
-  DisconnectDevice();
-}
+Flea3Camera::~Flea3Camera() { DisconnectDevice(); }
 
 void Flea3Camera::Connect() {
   PGRGuid guid;
@@ -65,10 +63,8 @@ void Flea3Camera::StopCapture() {
 
 void Flea3Camera::Configure(Config& config) {
   // Update CameraInfo here
+  SetVideoModeAndFrameRate(config.video_mode, config.fps);
   camera_info_ = GetCameraInfo();
-  PGERROR(camera_.SetVideoModeAndFrameRate(VIDEOMODE_1280x960Y8, FRAMERATE_30),
-          "Failed to set video mode and frame rate");
-  std::cout << "Video mode set" << std::endl;
 }
 
 void Flea3Camera::EnableMetadata() {
@@ -83,9 +79,57 @@ void Flea3Camera::EnableMetadata() {
   PGERROR(camera_.SetEmbeddedImageInfo(&info), "Failed to enable metadata");
 }
 
-void Flea3Camera::SetVideoMode(int& video_mode) {}
+void Flea3Camera::SetVideoModeAndFrameRate(int& video_mode,
+                                           double& frame_rate) {
+  // Some hack to get things going
+  auto pg_frame_rate = FRAMERATE_15;
+  auto pg_video_mode = VIDEOMODE_1280x960Y8;
 
-void Flea3Camera::SetFrameRate(double& frame_rate) {}
+  if (video_mode == flea3::Flea3Dyn_mono8) {
+    // MONO8
+    pg_video_mode = VIDEOMODE_1280x960Y8;
+    if (frame_rate >= 60) {
+      frame_rate = 60;
+      pg_frame_rate = FRAMERATE_60;
+    } else if (frame_rate >= 30) {
+      frame_rate = 30;
+      pg_frame_rate = FRAMERATE_30;
+    } else if (frame_rate >= 15) {
+      frame_rate = 15;
+      pg_frame_rate = FRAMERATE_15;
+    } else if (frame_rate >= 7.5) {
+      frame_rate = 7.5;
+      pg_frame_rate = FRAMERATE_7_5;
+    } else if (frame_rate >= 3.75) {
+      frame_rate = 3.75;
+      pg_frame_rate = FRAMERATE_3_75;
+    } else if (frame_rate >= 1.875) {
+      frame_rate = 1.875;
+      pg_frame_rate = FRAMERATE_1_875;
+    }
+  } else if (video_mode == flea3::Flea3Dyn_rgb8) {
+    // RGB8
+    pg_video_mode = VIDEOMODE_1280x960RGB;
+    if (frame_rate >= 30) {
+      frame_rate = 30;
+      pg_frame_rate = FRAMERATE_30;
+    } else if (frame_rate >= 15) {
+      frame_rate = 15;
+      pg_frame_rate = FRAMERATE_15;
+    } else if (frame_rate >= 7.5) {
+      frame_rate = 7.5;
+      pg_frame_rate = FRAMERATE_7_5;
+    } else if (frame_rate >= 3.75) {
+      frame_rate = 3.75;
+      pg_frame_rate = FRAMERATE_3_75;
+    } else if (frame_rate >= 1.875) {
+      frame_rate = 1.875;
+      pg_frame_rate = FRAMERATE_1_875;
+    }
+  }
+  PGERROR(camera_.SetVideoModeAndFrameRate(pg_video_mode, pg_frame_rate),
+          "Failed to set video mode and frame rate");
+}
 
 bool Flea3Camera::GrabImage(sensor_msgs::Image& image_msg,
                             sensor_msgs::CameraInfo& cinfo_msg) {
@@ -93,10 +137,9 @@ bool Flea3Camera::GrabImage(sensor_msgs::Image& image_msg,
 
   Image image;
   PGERROR(camera_.RetrieveBuffer(&image), "Failed to retrieve buffer");
-  //  auto metadata = image.GetMetadata();
 
   // TODO: Change this to use_ros_time?
-  if (true) {
+  if (false) {
     auto time = image.GetTimeStamp();
     image_msg.header.stamp.sec = time.seconds;
     image_msg.header.stamp.nsec = 1000 * time.microSeconds;
@@ -107,11 +150,18 @@ bool Flea3Camera::GrabImage(sensor_msgs::Image& image_msg,
   const auto bayer_format = image.GetBayerTileFormat();
   const auto bits_per_pixel = image.GetBitsPerPixel();
   std::string encoding;
-  if (camera_info_.isColorCamera && bayer_format != NONE) {
-    encoding = BayerFormatToEncoding(bayer_format);
+  if (camera_info_.isColorCamera) {
+    if (bayer_format != NONE) {
+      encoding = BayerFormatToEncoding(bayer_format);
+    } else if (bits_per_pixel == 24) {
+      encoding = sensor_msgs::image_encodings::RGB8;
+    } else {
+      encoding = PixelFormatToEncoding(bits_per_pixel);
+    }
   } else {
     encoding = PixelFormatToEncoding(bits_per_pixel);
   }
+  std::cout << encoding << std::endl;
   return sensor_msgs::fillImage(image_msg, encoding, image.GetRows(),
                                 image.GetCols(), image.GetStride(),
                                 image.GetData());
