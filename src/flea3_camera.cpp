@@ -18,7 +18,6 @@ void Flea3Camera::Connect() {
           serial_ + " not found. " + AvailableDevice());
   ConnectDevice(&guid);
   EnableMetadata();
-  camera_info_ = GetCameraInfo();
 }
 
 std::string Flea3Camera::AvailableDevice() {
