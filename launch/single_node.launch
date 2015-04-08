@@ -32,6 +32,11 @@
   	<param name="calib_url" type="string" value="$(arg calib_url)"/>
 
   	<param name="fps" type="double" value="$(arg fps)"/>
+    <param name="video_mode" type="int" value="$(arg video_mode)"/>
+    <param name="auto_exposure" type="bool" value="$(arg auto_exposure)"/>
+    <param name="auto_shutter" type="bool" value="$(arg auto_shutter)"/>
+    <param name="auto_gain" type="bool" value="$(arg auto_gain)"/>
+    <param name="auto_white_balance" type="bool" value="$(arg auto_white_balance)"/>
   </node>
 
   <!-- Extras -->
