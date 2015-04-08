@@ -38,7 +38,8 @@ target_link_libraries(
     ${FlyCapture2_LIBRARIES}
     )
 
-FLEA3_ADD_EXE(list_pg_cameras)
+FLEA3_ADD_EXE(list_cameras)
+FLEA3_ADD_EXE(single_main)
 
 add_dependencies(${PROJECT_NAME}
     ${catkin_EXPORTED_TARGETS}
