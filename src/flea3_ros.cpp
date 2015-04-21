@@ -11,4 +11,5 @@ bool Flea3Ros::Grab(const sensor_msgs::ImagePtr& image_msg,
                     const sensor_msgs::CameraInfoPtr& cinfo_msg) {
   return flea3_.GrabImage(*image_msg, *cinfo_msg);
 }
+
 }  // namespace flea3

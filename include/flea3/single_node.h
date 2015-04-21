@@ -1,5 +1,5 @@
 #ifndef FLEA3_SINGLE_NODE_H_
-#define FLEA3_SINGLE_NODE_H -
+#define FLEA3_SINGLE_NODE_H_
 
 #include "flea3/flea3_ros.h"
 #include "flea3/Flea3DynConfig.h"
