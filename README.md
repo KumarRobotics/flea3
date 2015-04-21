@@ -1,5 +1,7 @@
 # flea3
 
+![image](http://s3.amazonaws.com/rapgenius/4db77_ORIG-look_at_all_the_fucks_i_give.jpg)
+
 ROS driver for PointGrey Flea3 camera.
 
 See the dynamic reconfigure file for all reconfigurable parameters.
