@@ -18,7 +18,11 @@ void Flea3Camera::Connect() {
   PGERROR(bus_manager_.GetCameraFromSerialNumber(serial_id(), &guid),
           serial_ + " not found. " + AvailableDevice());
   ConnectDevice(&guid);
-  EnableMetadata();
+  try {
+    EnableMetadata();
+  } catch (const std::exception& e) {
+    ROS_INFO("Do I give a fuck?");
+  }
 }
 
 std::string Flea3Camera::AvailableDevice() {
@@ -133,7 +137,9 @@ void Flea3Camera::SetVideoModeAndFrameRateAndFormat7(int& video_mode,
       ROS_WARN_STREAM("Fall back to format 7 mode: " << fmt7_mode_pg);
     }
 
+    ROS_WARN_STREAM("pixel format out: " << pixel_format);
     SetFormat7(fmt7_mode_pg, frame_rate, pixel_format);
+    format7_mode = fmt7_mode_pg;
     video_mode = video_mode_pg;
   } else {
     SetVideoModeAndFrameRate(video_mode_pg, frame_rate);
@@ -148,7 +154,9 @@ void Flea3Camera::SetFormat7(const Mode& mode, double& frame_rate,
 
   Format7ImageSettings fmt7_settings;
   fmt7_settings.mode = mode;
+  ROS_WARN_STREAM("Pixel format before: " << pixel_format);
   pixel_format = (pixel_format == 0) ? PIXEL_FORMAT_RAW8 : pixel_format;
+  ROS_WARN_STREAM("Pixel format after: " << pixel_format);
   fmt7_settings.pixelFormat = static_cast<PixelFormat>(pixel_format);
   // Just use max for now
   fmt7_settings.width = fmt7_info.first.maxWidth;
