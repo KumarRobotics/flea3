@@ -41,13 +41,15 @@ class Flea3Camera {
   float GetCameraFrameRate();
   float GetCameraTemperature();
   FrameRate GetMaxFrameRate(const VideoMode& video_mode);
+  Mode GetFirstFormat7Mode();
 
   void SetWhiteBalanceRedBlue(bool auto_white_balance, int& red, int& blue);
-  void SetVideoModeAndFrameRate(int& video_mode, double& frame_rate);
+  void SetVideoModeAndFrameRateAndFormat7(int& video_mode, double& frame_rate,
+                                          int& format7_mode, int& pixel_format);
   void SetVideoModeAndFrameRate(const VideoMode& video_mode,
                                 const FrameRate& frame_rate);
-  void SetVideoModeAndFrameRate(int& video_mode, double& frame_rate,
-                                const VideoMode& video_mode_pg);
+  void SetVideoModeAndFrameRate(const VideoMode& video_mode,
+                                double& frame_rate);
   void SetExposure(bool& auto_exposure, double& exposure);
   void SetShutter(bool& auto_shutter, double& shutter);
   void SetGain(bool& auto_gain, double& gain);
@@ -56,9 +58,14 @@ class Flea3Camera {
   void WriteRegister(unsigned address, unsigned value);
   void SetProperty(const PropertyType& prop_type, bool& auto_on, double& value);
   void SetProperty(const PropertyType& prop_type, double& value);
-  void SetFormat7();
+  void SetFormat7(const Mode& mode, double& frame_rate, int& pixel_format);
   bool IsVideoModeAndFrameRateSupported(const VideoMode& video_mode,
                                         const FrameRate& frame_rate);
+  bool IsVideoModeSupported(const VideoMode& video_mode);
+  bool IsFormat7Supported();
+  std::pair<Format7PacketInfo, bool> IsFormat7SettingsValid(
+      const Format7ImageSettings& fmt7_settings);
+  std::pair<Format7Info, bool> GetFormat7Info(const Mode& mode);
 
   BusManager bus_manager_;
   Camera camera_;

@@ -61,7 +61,8 @@ void Flea3Camera::StopCapture() {
 
 void Flea3Camera::Configure(Config& config) {
   // Update CameraInfo here
-  SetVideoModeAndFrameRate(config.video_mode, config.fps);
+  SetVideoModeAndFrameRateAndFormat7(config.video_mode, config.fps,
+                                     config.format7_mode, config.pixel_format);
   camera_info_ = GetCameraInfo();
   SetWhiteBalanceRedBlue(config.auto_white_balance, config.wb_red,
                          config.wb_blue);
@@ -85,8 +86,10 @@ void Flea3Camera::EnableMetadata() {
   PGERROR(camera_.SetEmbeddedImageInfo(&info), "Failed to enable metadata");
 }
 
-void Flea3Camera::SetVideoModeAndFrameRate(int& video_mode,
-                                           double& frame_rate) {
+void Flea3Camera::SetVideoModeAndFrameRateAndFormat7(int& video_mode,
+                                                     double& frame_rate,
+                                                     int& format7_mode,
+                                                     int& pixel_format) {
   // Get the default video mode and frame rate for this camera
   VideoMode curr_video_mode_pg;
   FrameRate curr_frame_rate_pg;
@@ -102,12 +105,12 @@ void Flea3Camera::SetVideoModeAndFrameRate(int& video_mode,
   bool video_mode_supported;
   if (video_mode_pg == VIDEOMODE_FORMAT7) {
     ROS_INFO_STREAM("Requested video mode is format 7: " << video_mode_pg);
+    video_mode_supported = IsFormat7Supported();
   } else {
     ROS_INFO_STREAM("Request video mode is normal: " << video_mode_pg);
     // To see whether this video mode is supported, test it with the lowest
     // frame rate
-    video_mode_supported =
-        IsVideoModeAndFrameRateSupported(video_mode_pg, FRAMERATE_1_875);
+    video_mode_supported = IsVideoModeSupported(video_mode_pg);
   }
 
   if (!video_mode_supported) {
@@ -116,26 +119,101 @@ void Flea3Camera::SetVideoModeAndFrameRate(int& video_mode,
   }
 
   ROS_INFO_STREAM("Selected video mode is supported: " << video_mode_pg);
-  // The selected video mode is supported
+  // Do configuration
   if (video_mode_pg == VIDEOMODE_FORMAT7) {
-    ROS_INFO("Do something to setup format 7");
+    ROS_WARN("Format 7 is supported");
+    // Check if the request video mode is supported
+    auto fmt7_mode_pg = static_cast<Mode>(format7_mode);
+    const auto fmt7_info = GetFormat7Info(fmt7_mode_pg);
+
+    if (!fmt7_info.second) {
+      ROS_WARN_STREAM(
+          "The requested format 7 mode is not valid: " << fmt7_mode_pg);
+      fmt7_mode_pg = GetFirstFormat7Mode();
+      ROS_WARN_STREAM("Fall back to format 7 mode: " << fmt7_mode_pg);
+    }
+
+    SetFormat7(fmt7_mode_pg, frame_rate, pixel_format);
+    video_mode = video_mode_pg;
   } else {
-    SetVideoModeAndFrameRate(video_mode, frame_rate, video_mode_pg);
+    SetVideoModeAndFrameRate(video_mode_pg, frame_rate);
+    video_mode = video_mode_pg;
+    pixel_format = 0;
   }
 }
 
-void Flea3Camera::SetFormat7() {
-  Format7Info fmt7_info;
-  bool fmt7_supported;
-  PGERROR(camera_.GetFormat7Info(&fmt7_info, &fmt7_supported),
-          "Failed to get format7 info");
+void Flea3Camera::SetFormat7(const Mode& mode, double& frame_rate,
+                             int& pixel_format) {
+  const auto fmt7_info = GetFormat7Info(mode);
+
+  Format7ImageSettings fmt7_settings;
+  fmt7_settings.mode = mode;
+  pixel_format = (pixel_format == 0) ? PIXEL_FORMAT_RAW8 : pixel_format;
+  fmt7_settings.pixelFormat = static_cast<PixelFormat>(pixel_format);
+  // Just use max for now
+  fmt7_settings.width = fmt7_info.first.maxWidth;
+  fmt7_settings.height = fmt7_info.first.maxHeight;
+  // Validate the settings to make sure that they are valid
+  const auto fmt7_packet_info = IsFormat7SettingsValid(fmt7_settings);
+  if (fmt7_packet_info.second) {
+    ROS_WARN_STREAM("Format 7 valid, packet size: "
+                    << fmt7_packet_info.first.recommendedBytesPerPacket);
+    PGERROR(
+        camera_.SetFormat7Configuration(
+            &fmt7_settings, fmt7_packet_info.first.recommendedBytesPerPacket),
+        "Failed to set format7 configuration");
+    SetProperty(FRAME_RATE, frame_rate);
+  } else {
+    throw std::runtime_error("Fuck this shit");
+  }
 }
 
-void Flea3Camera::SetVideoModeAndFrameRate(int& video_mode, double& frame_rate,
-                                           const VideoMode& video_mode_pg) {
+Mode Flea3Camera::GetFirstFormat7Mode() {
+  for (int i = 0; i <= 8; ++i) {
+    const auto mode = static_cast<Mode>(i);
+    const auto fmt7_info = GetFormat7Info(mode);
+    if (fmt7_info.second) {
+      return mode;
+    }
+  }
+  // This should never happen
+  return {};
+}
+
+std::pair<Format7PacketInfo, bool> Flea3Camera::IsFormat7SettingsValid(
+    const Format7ImageSettings& fmt7_settings) {
+  Format7PacketInfo fmt7_packet_info;
+  bool valid;
+  PGERROR(camera_.ValidateFormat7Settings(&fmt7_settings, &valid,
+                                          &fmt7_packet_info),
+          "Failed to validate format7 settings");
+  return {fmt7_packet_info, valid};
+}
+
+std::pair<Format7Info, bool> Flea3Camera::GetFormat7Info(const Mode& mode) {
+  Format7Info fmt7_info;
+  bool supported;
+  fmt7_info.mode = mode;
+  PGERROR(camera_.GetFormat7Info(&fmt7_info, &supported),
+          "Failed to get format 7 info");
+  return {fmt7_info, supported};
+}
+
+bool Flea3Camera::IsFormat7Supported() {
+  for (int i = 0; i <= 8; ++i) {
+    const auto mode = static_cast<Mode>(i);
+    if (GetFormat7Info(mode).second) {
+      return true;
+    }
+  }
+  return false;
+}
+
+void Flea3Camera::SetVideoModeAndFrameRate(const VideoMode& video_mode,
+                                           double& frame_rate) {
   // Get the max frame rate for this video mode
-  const auto max_frame_rate_pg = GetMaxFrameRate(video_mode_pg);
-  SetVideoModeAndFrameRate(video_mode_pg, max_frame_rate_pg);
+  const auto max_frame_rate_pg = GetMaxFrameRate(video_mode);
+  SetVideoModeAndFrameRate(video_mode, max_frame_rate_pg);
 
   // Set to max supported frame rate and use the config value to fine tune it
   const auto max_frame_rate = frame_rates_[max_frame_rate_pg];
@@ -143,7 +221,6 @@ void Flea3Camera::SetVideoModeAndFrameRate(int& video_mode, double& frame_rate,
   frame_rate = std::min(frame_rate, max_frame_rate);
   ROS_INFO_STREAM("Set to requested frame rate: " << frame_rate);
   SetProperty(FRAME_RATE, frame_rate);
-  video_mode = video_mode_pg;
 }
 
 void Flea3Camera::SetVideoModeAndFrameRate(const VideoMode& video_mode,
@@ -173,6 +250,10 @@ bool Flea3Camera::IsVideoModeAndFrameRateSupported(
       camera_.GetVideoModeAndFrameRateInfo(video_mode, frame_rate, &supported),
       "Failed to get video mode and frame rate info");
   return supported;
+}
+
+bool Flea3Camera::IsVideoModeSupported(const VideoMode& video_mode) {
+  return IsVideoModeAndFrameRateSupported(video_mode, FRAMERATE_1_875);
 }
 
 bool Flea3Camera::GrabImage(sensor_msgs::Image& image_msg,
