@@ -35,15 +35,19 @@ class Flea3Camera {
   void ConnectDevice(PGRGuid* guid);
   void DisconnectDevice();
   std::string AvailableDevice();
+
   CameraInfo GetCameraInfo();
   Property GetProperty(const PropertyType& prop_type);
   PropertyInfo GetPropertyInfo(const PropertyType& prop_type);
+
   float GetCameraFrameRate();
   float GetCameraTemperature();
-  FrameRate GetMaxFrameRate(const VideoMode& video_mode);
-  Mode GetFirstFormat7Mode();
 
-  void SetWhiteBalanceRedBlue(bool auto_white_balance, int& red, int& blue);
+  Mode GetFirstFormat7Mode();
+  FrameRate GetMaxFrameRate(const VideoMode& video_mode);
+  std::pair<Format7Info, bool> GetFormat7Info(const Mode& mode);
+
+  void SetWhiteBalanceRedBlue(bool& auto_white_balance, int& red, int& blue);
   void SetVideoModeAndFrameRateAndFormat7(int& video_mode, double& frame_rate,
                                           int& format7_mode, int& pixel_format);
   void SetVideoModeAndFrameRate(const VideoMode& video_mode,
@@ -55,17 +59,19 @@ class Flea3Camera {
   void SetGain(bool& auto_gain, double& gain);
   void SetBrightness(double& brightness);
   void SetGamma(double& gamma);
-  void WriteRegister(unsigned address, unsigned value);
+
+  void SetFormat7(const Mode& mode, double& frame_rate, int& pixel_format);
   void SetProperty(const PropertyType& prop_type, bool& auto_on, double& value);
   void SetProperty(const PropertyType& prop_type, double& value);
-  void SetFormat7(const Mode& mode, double& frame_rate, int& pixel_format);
-  bool IsVideoModeAndFrameRateSupported(const VideoMode& video_mode,
-                                        const FrameRate& frame_rate);
+  void WriteRegister(unsigned address, unsigned value);
+
   bool IsVideoModeSupported(const VideoMode& video_mode);
   bool IsFormat7Supported();
+  bool IsAutoWhiteBalanceSupported();
   std::pair<Format7PacketInfo, bool> IsFormat7SettingsValid(
       const Format7ImageSettings& fmt7_settings);
-  std::pair<Format7Info, bool> GetFormat7Info(const Mode& mode);
+  bool IsVideoModeAndFrameRateSupported(const VideoMode& video_mode,
+                                        const FrameRate& frame_rate);
 
   BusManager bus_manager_;
   Camera camera_;

@@ -305,31 +305,48 @@ CameraInfo Flea3Camera::GetCameraInfo() {
   return camera_info;
 }
 
-void Flea3Camera::SetWhiteBalanceRedBlue(bool auto_white_balance, int& red,
+void Flea3Camera::SetWhiteBalanceRedBlue(bool& auto_white_balance, int& red,
                                          int& blue) {
-  if (camera_info_.isColorCamera) {
-    // Register for white balance
-    unsigned white_balance_addr = 0x80C;
-    unsigned enable = 1 << 31;
-    unsigned value = 1 << 25;  // Turn on
-    if (auto_white_balance) {
-      value |= 1 << 24;  // Auto
-    } else {
-      value |= blue << 12 | red;
-    }
+  if (!camera_info_.isColorCamera) {
+    // Not even a color camera, what are you thinking?
+    ROS_ERROR("Not a color camera");
+    auto_white_balance = false;
+    red = 0;
+    blue = 0;
+    return;
+  }
 
-    if (config_.auto_white_balance && auto_white_balance) {
-      // Only changes red and blue, just update those values
+  unsigned white_balance_addr = 0x80C;
+  unsigned enable = 1 << 31;
+  unsigned value = 1 << 25;  // Turn on
+
+  if (auto_white_balance) {
+    if (!IsAutoWhiteBalanceSupported()) {
+      // You want auto white balance, but it is not supported
+      ROS_ERROR("Auto white balance not supported");
+      auto_white_balance = false;
+      // Set to some reasonable value
+      blue = 800;
+      red = 550;
+      return;
+    }
+    WriteRegister(white_balance_addr, enable);
+    value |= 1 << 24;  // Auto
+    if (config_.auto_white_balance) {
       const auto prop = GetProperty(WHITE_BALANCE);
       red = prop.valueA;
       blue = prop.valueB;
     }
-
-    // First enable
-    WriteRegister(white_balance_addr, enable);
-    // Then write to it
-    WriteRegister(white_balance_addr, value);
+  } else {
+    value |= blue << 12 | red;
   }
+  ROS_ERROR("Change white balance supported");
+  WriteRegister(white_balance_addr, value);
+}
+
+bool Flea3Camera::IsAutoWhiteBalanceSupported() {
+  const auto pinfo = GetPropertyInfo(WHITE_BALANCE);
+  return pinfo.autoSupported;
 }
 
 void Flea3Camera::SetProperty(const PropertyType& prop_type, bool& auto_on,
