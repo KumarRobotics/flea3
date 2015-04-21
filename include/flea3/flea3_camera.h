@@ -25,7 +25,7 @@ class Flea3Camera {
   bool GrabImage(sensor_msgs::Image& image_msg,
                  sensor_msgs::CameraInfo& cinfo_msg);
 
-  void Connect();
+  bool Connect();
   void Configure(Config& config);
   void StarCapture();
   void StopCapture();
@@ -80,6 +80,7 @@ class Flea3Camera {
   Config config_;
   bool capturing_{false};
   std::vector<double> frame_rates_;
+  int num_tries{5};
 };
 
 void HandleError(const Error& error, const std::string& message = "",

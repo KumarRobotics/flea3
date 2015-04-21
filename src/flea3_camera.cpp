@@ -8,21 +8,29 @@ using namespace FlyCapture2;
 
 Flea3Camera::Flea3Camera(const std::string& serial) : serial_(serial) {
   frame_rates_ = {1.875, 3.75, 7.5, 15, 30, 60, 120, 240};
-  Connect();
+  while (num_tries > 0) {
+    if (Connect()) break;
+    --num_tries;
+    ROS_INFO_STREAM("Try: " << num_tries);
+  }
 }
 
 Flea3Camera::~Flea3Camera() { DisconnectDevice(); }
 
-void Flea3Camera::Connect() {
+bool Flea3Camera::Connect() {
   PGRGuid guid;
   PGERROR(bus_manager_.GetCameraFromSerialNumber(serial_id(), &guid),
           serial_ + " not found. " + AvailableDevice());
-  ConnectDevice(&guid);
+  bool success;
   try {
+    ConnectDevice(&guid);
     EnableMetadata();
+    success = true;
   } catch (const std::exception& e) {
     ROS_INFO("Do I give a fuck?");
+    success = false;
   }
+  return success;
 }
 
 std::string Flea3Camera::AvailableDevice() {
