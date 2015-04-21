@@ -35,3 +35,8 @@ then restart and verify that
 cat /sys/module/usbcore/parameters/usbfs_memory_mb
 ```
 is `256`
+
+Also it is recommended to upgrade your kernel to 3.16 by doing
+```
+sudo apt-get install linux-signed-generic-lts-utopic
+```
