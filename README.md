@@ -14,6 +14,11 @@ roslaunch flea3 single_node.launch device:=13344889
 Dependency:
 `camera_base`
 
+## Known Issues
+
+1. Does not support binning in format 7 mode, which means frame rate cannot go above 60
+2. Does not support pixel format mono8 from dynamic reconfigure
+
 ## Optimizing USB performance
 
 http://www.matrix-vision.com/manuals/mvBlueFOX3/mvBC_page_quickstart.html#mvBC_subsubsection_quickstart_linux_requirements_optimising_usb
