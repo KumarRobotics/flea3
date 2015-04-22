@@ -103,15 +103,11 @@ void Flea3Camera::SetVideoModeAndFrameRateAndFormat7(int& video_mode,
                                                      int& format7_mode,
                                                      int& pixel_format) {
   // Get the default video mode and frame rate for this camera
-  VideoMode curr_video_mode_pg;
-  FrameRate curr_frame_rate_pg;
-  PGERROR(camera_.GetVideoModeAndFrameRate(&curr_video_mode_pg,
-                                           &curr_frame_rate_pg),
-          "Failed to get VideoMode and FrameRate");
-  ROS_INFO_STREAM("current video mode: " << curr_video_mode_pg);
-  ROS_INFO_STREAM("current frame rate: " << curr_frame_rate_pg);
+  const auto curr_video_mode_frame_rate_pg = GetVideoModeAndFrameRate();
+  ROS_INFO_STREAM("curr video mode: " << curr_video_mode_frame_rate_pg.first);
+  ROS_INFO_STREAM("curr frame rate: " << curr_video_mode_frame_rate_pg.second);
 
-  VideoMode video_mode_pg = static_cast<VideoMode>(video_mode);
+  auto video_mode_pg = static_cast<VideoMode>(video_mode);
 
   ROS_INFO("Trying to determine if requested video mode is supported");
   bool video_mode_supported;
@@ -127,11 +123,15 @@ void Flea3Camera::SetVideoModeAndFrameRateAndFormat7(int& video_mode,
 
   if (!video_mode_supported) {
     ROS_INFO_STREAM("Selected video mode not supported: " << video_mode_pg);
-    video_mode_pg = curr_video_mode_pg;
+    // If the desired video mode is not supported, we fall back to the current
+    // video mode, we dont simply return here because at the begining, dynamic
+    // reconfigure has no idea what's the available video mode, or if the video
+    // mode is format 7, what's the available format mode is
+    video_mode_pg = curr_video_mode_frame_rate_pg.first;
   }
 
   ROS_INFO_STREAM("Selected video mode is supported: " << video_mode_pg);
-  // Do configuration
+  // Actual configuration
   if (video_mode_pg == VIDEOMODE_FORMAT7) {
     ROS_WARN("Format 7 is supported");
     // Check if the request video mode is supported
@@ -257,6 +257,14 @@ FrameRate Flea3Camera::GetMaxFrameRate(const VideoMode& video_mode) {
     }
   }
   return max_frame_rate;
+}
+
+std::pair<VideoMode, FrameRate> Flea3Camera::GetVideoModeAndFrameRate() {
+  VideoMode video_mode;
+  FrameRate frame_rate;
+  PGERROR(camera_.GetVideoModeAndFrameRate(&video_mode, &frame_rate),
+          "Failed to get VideoMode and FrameRate");
+  return {video_mode, frame_rate};
 }
 
 bool Flea3Camera::IsVideoModeAndFrameRateSupported(
