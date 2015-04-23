@@ -72,10 +72,13 @@ void Flea3Camera::StopCapture() {
 }
 
 void Flea3Camera::Configure(Config& config) {
-  // Update CameraInfo here
   SetVideoModeAndFrameRateAndFormat7(config.video_mode, config.fps,
                                      config.format7_mode, config.pixel_format);
+
+  // Update CameraInfo here after video mode is changed
   camera_info_ = GetCameraInfo();
+
+  // Do other settings
   SetWhiteBalanceRedBlue(config.auto_white_balance, config.wb_red,
                          config.wb_blue);
   SetExposure(config.auto_exposure, config.exposure);
@@ -83,6 +86,8 @@ void Flea3Camera::Configure(Config& config) {
   SetGain(config.auto_gain, config.gain);
   SetBrightness(config.brightness);
   SetGamma(config.gamma);
+
+  // Save this config
   config_ = config;
 }
 
@@ -389,7 +394,7 @@ void Flea3Camera::SetProperty(const PropertyType& prop_type, bool& auto_on,
 }
 
 void Flea3Camera::SetProperty(const PropertyType& prop_type, double& value) {
-  auto prop_info = GetPropertyInfo(prop_type);
+  const auto prop_info = GetPropertyInfo(prop_type);
   if (prop_info.present) {
     Property prop;
     prop.type = prop_type;

@@ -55,13 +55,14 @@ class Flea3Camera {
                                 const FrameRate& frame_rate);
   void SetVideoModeAndFrameRate(const VideoMode& video_mode,
                                 double& frame_rate);
+  void SetFormat7(const Mode& mode, double& frame_rate, int& pixel_format);
+
   void SetExposure(bool& auto_exposure, double& exposure);
   void SetShutter(bool& auto_shutter, double& shutter);
   void SetGain(bool& auto_gain, double& gain);
   void SetBrightness(double& brightness);
   void SetGamma(double& gamma);
 
-  void SetFormat7(const Mode& mode, double& frame_rate, int& pixel_format);
   void SetProperty(const PropertyType& prop_type, bool& auto_on, double& value);
   void SetProperty(const PropertyType& prop_type, double& value);
   void WriteRegister(unsigned address, unsigned value);
