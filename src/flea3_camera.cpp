@@ -163,9 +163,10 @@ void Flea3Camera::SetFormat7(const Mode& mode, double& frame_rate,
   Format7ImageSettings fmt7_settings;
   fmt7_settings.mode = mode;
   ROS_WARN_STREAM("Pixel format before: " << pixel_format);
-  pixel_format = (pixel_format == 0) ? PIXEL_FORMAT_RAW8 : pixel_format;
+  // The 22 here corresponds to PIXEL_FORMAT_RAW8
+  pixel_format = (pixel_format == 0) ? 22 : pixel_format;
   ROS_WARN_STREAM("Pixel format after: " << pixel_format);
-  fmt7_settings.pixelFormat = static_cast<PixelFormat>(pixel_format);
+  fmt7_settings.pixelFormat = static_cast<PixelFormat>(1 << pixel_format);
   // Just use max for now
   fmt7_settings.width = fmt7_info.first.maxWidth;
   fmt7_settings.height = fmt7_info.first.maxHeight;
