@@ -8,10 +8,13 @@ using namespace FlyCapture2;
 
 Flea3Camera::Flea3Camera(const std::string& serial) : serial_(serial) {
   frame_rates_ = {1.875, 3.75, 7.5, 15, 30, 60, 120, 240};
+  int num_tries{3};
   while (num_tries > 0) {
     if (Connect()) break;
     --num_tries;
-    ROS_INFO_STREAM("Try: " << num_tries);
+  }
+  if (num_tries == 0) {
+    throw std::runtime_error("Failed after multiple tries, abort.");
   }
 }
 
@@ -27,7 +30,7 @@ bool Flea3Camera::Connect() {
     EnableMetadata();
     success = true;
   } catch (const std::exception& e) {
-    ROS_INFO("Do I give a fuck?");
+    ROS_INFO("Failed to connect to camera: %s. Try again.", serial().c_str());
     success = false;
   }
   return success;
@@ -109,25 +112,20 @@ void Flea3Camera::SetVideoModeAndFrameRateAndFormat7(int& video_mode,
                                                      int& pixel_format) {
   // Get the default video mode and frame rate for this camera
   const auto curr_video_mode_frame_rate_pg = GetVideoModeAndFrameRate();
-  ROS_INFO_STREAM("curr video mode: " << curr_video_mode_frame_rate_pg.first);
-  ROS_INFO_STREAM("curr frame rate: " << curr_video_mode_frame_rate_pg.second);
 
   auto video_mode_pg = static_cast<VideoMode>(video_mode);
 
-  ROS_INFO("Trying to determine if requested video mode is supported");
   bool video_mode_supported;
   if (video_mode_pg == VIDEOMODE_FORMAT7) {
-    ROS_INFO_STREAM("Requested video mode is format 7: " << video_mode_pg);
     video_mode_supported = IsFormat7Supported();
   } else {
-    ROS_INFO_STREAM("Request video mode is normal: " << video_mode_pg);
     // To see whether this video mode is supported, test it with the lowest
     // frame rate
     video_mode_supported = IsVideoModeSupported(video_mode_pg);
   }
 
   if (!video_mode_supported) {
-    ROS_INFO_STREAM("Selected video mode not supported: " << video_mode_pg);
+    ROS_WARN_STREAM("Selected video mode not supported: " << video_mode_pg);
     // If the desired video mode is not supported, we fall back to the current
     // video mode, we dont simply return here because at the begining, dynamic
     // reconfigure has no idea what's the available video mode, or if the video
@@ -135,22 +133,18 @@ void Flea3Camera::SetVideoModeAndFrameRateAndFormat7(int& video_mode,
     video_mode_pg = curr_video_mode_frame_rate_pg.first;
   }
 
-  ROS_INFO_STREAM("Selected video mode is supported: " << video_mode_pg);
   // Actual configuration
   if (video_mode_pg == VIDEOMODE_FORMAT7) {
-    ROS_WARN("Format 7 is supported");
     // Check if the request video mode is supported
     auto fmt7_mode_pg = static_cast<Mode>(format7_mode);
     const auto fmt7_info = GetFormat7Info(fmt7_mode_pg);
 
     if (!fmt7_info.second) {
-      ROS_WARN_STREAM(
-          "The requested format 7 mode is not valid: " << fmt7_mode_pg);
+      ROS_WARN("The requested format 7 mode [%d] is not valid.", fmt7_mode_pg);
       fmt7_mode_pg = GetFirstFormat7Mode();
-      ROS_WARN_STREAM("Fall back to format 7 mode: " << fmt7_mode_pg);
+      ROS_WARN("Fall back to format 7 mode [%d]", fmt7_mode_pg);
     }
 
-    ROS_WARN_STREAM("pixel format out: " << pixel_format);
     SetFormat7(fmt7_mode_pg, frame_rate, pixel_format);
     format7_mode = fmt7_mode_pg;
     video_mode = video_mode_pg;
@@ -167,10 +161,8 @@ void Flea3Camera::SetFormat7(const Mode& mode, double& frame_rate,
 
   Format7ImageSettings fmt7_settings;
   fmt7_settings.mode = mode;
-  ROS_WARN_STREAM("Pixel format before: " << pixel_format);
   // The 22 here corresponds to PIXEL_FORMAT_RAW8
   pixel_format = (pixel_format == 0) ? 22 : pixel_format;
-  ROS_WARN_STREAM("Pixel format after: " << pixel_format);
   fmt7_settings.pixelFormat = static_cast<PixelFormat>(1 << pixel_format);
   // Just use max for now
   fmt7_settings.width = fmt7_info.first.maxWidth;
@@ -178,15 +170,13 @@ void Flea3Camera::SetFormat7(const Mode& mode, double& frame_rate,
   // Validate the settings to make sure that they are valid
   const auto fmt7_packet_info = IsFormat7SettingsValid(fmt7_settings);
   if (fmt7_packet_info.second) {
-    ROS_WARN_STREAM("Format 7 valid, packet size: "
-                    << fmt7_packet_info.first.recommendedBytesPerPacket);
     PGERROR(
         camera_.SetFormat7Configuration(
             &fmt7_settings, fmt7_packet_info.first.recommendedBytesPerPacket),
         "Failed to set format7 configuration");
     SetProperty(FRAME_RATE, frame_rate);
   } else {
-    throw std::runtime_error("Fuck this shit");
+    ROS_WARN("Format 7 Settings are not valid");
   }
 }
 
@@ -222,9 +212,12 @@ std::pair<Format7Info, bool> Flea3Camera::GetFormat7Info(const Mode& mode) {
 }
 
 bool Flea3Camera::IsFormat7Supported() {
-  for (int i = 0; i <= 8; ++i) {
+  // TODO: this is a hack, there are more than 8 modes
+  const int num_modes{8};
+  for (int i = 0; i <= num_modes; ++i) {
     const auto mode = static_cast<Mode>(i);
     if (GetFormat7Info(mode).second) {
+      // Supported
       return true;
     }
   }
@@ -239,9 +232,7 @@ void Flea3Camera::SetVideoModeAndFrameRate(const VideoMode& video_mode,
 
   // Set to max supported frame rate and use the config value to fine tune it
   const auto max_frame_rate = frame_rates_[max_frame_rate_pg];
-  ROS_INFO_STREAM("Maximum supported frame rate: " << max_frame_rate);
   frame_rate = std::min(frame_rate, max_frame_rate);
-  ROS_INFO_STREAM("Set to requested frame rate: " << frame_rate);
   SetProperty(FRAME_RATE, frame_rate);
 }
 
@@ -331,7 +322,8 @@ void Flea3Camera::SetWhiteBalanceRedBlue(bool& auto_white_balance, int& red,
                                          int& blue) {
   if (!camera_info_.isColorCamera) {
     // Not even a color camera, what are you thinking?
-    ROS_ERROR("Not a color camera");
+    ROS_ERROR("Camera %s is not a color camera, white balance not supported",
+              serial().c_str());
     auto_white_balance = false;
     red = 0;
     blue = 0;
@@ -345,7 +337,7 @@ void Flea3Camera::SetWhiteBalanceRedBlue(bool& auto_white_balance, int& red,
   if (auto_white_balance) {
     if (!IsAutoWhiteBalanceSupported()) {
       // You want auto white balance, but it is not supported
-      ROS_ERROR("Auto white balance not supported");
+      ROS_WARN("Auto white balance not supported");
       auto_white_balance = false;
       // Set to some reasonable value
       blue = 800;
@@ -362,7 +354,6 @@ void Flea3Camera::SetWhiteBalanceRedBlue(bool& auto_white_balance, int& red,
   } else {
     value |= blue << 12 | red;
   }
-  ROS_ERROR("Change white balance supported");
   WriteRegister(white_balance_addr, value);
 }
 
