@@ -1,6 +1,6 @@
 # flea3
 
-![image](http://s3.amazonaws.com/rapgenius/4db77_ORIG-look_at_all_the_fucks_i_give.jpg)
+![image](http://www.geeky-gadgets.com/wp-content/uploads/2012/07/Flea3.jpg)
 
 ROS driver for PointGrey Flea3 camera.
 
