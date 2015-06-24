@@ -14,6 +14,9 @@ roslaunch flea3 single_node.launch device:=13344889
 Dependency:
 `camera_base`
 
+[Technical Manual](http://www.ptgrey.com/support/downloads/10120)
+[Register Reference](http://www.ptgrey.com/support/downloads/10130/)
+
 ## Known Issues
 
 ## Optimizing USB performance
