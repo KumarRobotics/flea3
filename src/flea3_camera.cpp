@@ -8,9 +8,11 @@ using namespace FlyCapture2;
 
 Flea3Camera::Flea3Camera(const std::string& serial) : serial_(serial) {
   frame_rates_ = {1.875, 3.75, 7.5, 15, 30, 60, 120, 240};
+  // Wait for camera to power up
   int num_tries{3};
   while (num_tries > 0) {
     if (Connect()) break;
+    usleep(100000);  // Sleep for 100ms
     --num_tries;
   }
   if (num_tries == 0) {
@@ -28,12 +30,25 @@ bool Flea3Camera::Connect() {
   try {
     ConnectDevice(&guid);
     EnableMetadata();
+    // For now this only set the grab timeout
+    SetConfiguration();
     success = true;
   } catch (const std::exception& e) {
-    ROS_INFO("Failed to connect to camera: %s. Try again.", serial().c_str());
+    ROS_INFO("Failed to connect to camera: %s. Try again. | %s",
+             serial().c_str(), e.what());
     success = false;
   }
   return success;
+}
+
+void Flea3Camera::SetConfiguration() {
+  FC2Config config;
+  PGERROR(camera_.GetConfiguration(&config), "Failed to get configuration");
+  // Set the grab timeout to 1 seconds
+  config.grabTimeout = 1000;
+
+  // Set the camera configuration
+  PGERROR(camera_.SetConfiguration(&config), "Failed to set configuration");
 }
 
 std::string Flea3Camera::AvailableDevice() {
@@ -89,6 +104,7 @@ void Flea3Camera::Configure(Config& config) {
   SetGain(config.auto_gain, config.gain);
   SetBrightness(config.brightness);
   SetGamma(config.gamma);
+  SetTriggerMode(config.enable_trigger);
 
   // Save this config
   config_ = config;
@@ -281,6 +297,11 @@ bool Flea3Camera::GrabImage(sensor_msgs::Image& image_msg,
                             sensor_msgs::CameraInfo& cinfo_msg) {
   if (!(camera_.IsConnected() && capturing_)) return false;
 
+  if (config_.enable_trigger) {
+    PollForTriggerReady();
+    FireSoftwareTrigger();
+  }
+
   Image image;
   PGERROR(camera_.RetrieveBuffer(&image), "Failed to retrieve buffer");
 
@@ -423,6 +444,29 @@ void Flea3Camera::WriteRegister(unsigned address, unsigned value) {
   PGERROR(camera_.WriteRegister(address, value), "Failed to write register");
 }
 
+// TODO:
+void Flea3Camera::SetTriggerMode(bool& enable_trigger) {
+  TriggerModeInfo trigger_mode_info;
+  PGERROR(camera_.GetTriggerModeInfo(&trigger_mode_info),
+          "Failed to get trigger mode info");
+  if (!trigger_mode_info.present) {
+    // Camera doesn't support external triggering, so set enable_trigger to
+    // false
+    ROS_WARN("Camera does not support triggering");
+    enable_trigger = false;
+    return;
+  }
+
+  TriggerMode trigger_mode;
+  PGERROR(camera_.GetTriggerMode(&trigger_mode), "Failed to get trigger mode");
+  trigger_mode.onOff = enable_trigger;
+  trigger_mode.mode = 0;
+  trigger_mode.parameter = 0;
+  // A source of 7 means software trigger
+  trigger_mode.source = 7;
+  PGERROR(camera_.SetTriggerMode(&trigger_mode), "Failed to set trigger mode");
+}
+
 float Flea3Camera::GetCameraTemperature() {
   const auto prop = GetProperty(TEMPERATURE);
   // It returns values of 10 * K
@@ -529,6 +573,29 @@ void printProperty(const Property& prop, const std::string& prop_name) {
             << ", value B: " << prop.valueB << ", abs: " << prop.absValue;
 
   std::cout << std::endl;
+}
+
+unsigned Flea3Camera::ReadRegister(unsigned address) {
+  unsigned reg_val;
+  PGERROR(camera_.ReadRegister(address, &reg_val), "Failed to read register");
+  return reg_val;
+}
+
+bool Flea3Camera::PollForTriggerReady() {
+  const unsigned int software_trigger_addr = 0x62C;
+  unsigned int reg_val = 0;
+
+  do {
+    reg_val = ReadRegister(software_trigger_addr);
+  } while ((reg_val >> 31) != 0);
+
+  return true;
+}
+
+void Flea3Camera::FireSoftwareTrigger() {
+  const unsigned software_trigger_addr = 0x62C;
+  const unsigned fire = 0x80000000;
+  WriteRegister(software_trigger_addr, fire);
 }
 
 }  // namespace flea3

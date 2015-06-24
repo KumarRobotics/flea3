@@ -48,6 +48,7 @@ class Flea3Camera {
   std::pair<Format7Info, bool> GetFormat7Info(const Mode& mode);
   std::pair<VideoMode, FrameRate> GetVideoModeAndFrameRate();
 
+  void SetConfiguration();
   void SetWhiteBalanceRedBlue(bool& auto_white_balance, int& red, int& blue);
   void SetVideoModeAndFrameRateAndFormat7(int& video_mode, double& frame_rate,
                                           int& format7_mode, int& pixel_format);
@@ -63,9 +64,15 @@ class Flea3Camera {
   void SetBrightness(double& brightness);
   void SetGamma(double& gamma);
 
+  void SetTriggerMode(bool &enable_trigger);
+  bool PollForTriggerReady();
+  void FireSoftwareTrigger();
+
+
   void SetProperty(const PropertyType& prop_type, bool& auto_on, double& value);
   void SetProperty(const PropertyType& prop_type, double& value);
   void WriteRegister(unsigned address, unsigned value);
+  unsigned ReadRegister(unsigned address);
 
   bool IsVideoModeSupported(const VideoMode& video_mode);
   bool IsFormat7Supported();
