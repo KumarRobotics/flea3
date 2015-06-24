@@ -15,6 +15,7 @@ Dependency:
 `camera_base`
 
 [Technical Manual](http://www.ptgrey.com/support/downloads/10120)
+
 [Register Reference](http://www.ptgrey.com/support/downloads/10130/)
 
 ## Known Issues
