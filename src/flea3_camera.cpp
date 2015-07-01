@@ -297,11 +297,6 @@ bool Flea3Camera::GrabImage(sensor_msgs::Image& image_msg,
                             sensor_msgs::CameraInfo& cinfo_msg) {
   if (!(camera_.IsConnected() && capturing_)) return false;
 
-  if (config_.enable_trigger) {
-    PollForTriggerReady();
-    FireSoftwareTrigger();
-  }
-
   Image image;
   PGERROR(camera_.RetrieveBuffer(&image), "Failed to retrieve buffer");
 
@@ -596,6 +591,19 @@ void Flea3Camera::FireSoftwareTrigger() {
   const unsigned software_trigger_addr = 0x62C;
   const unsigned fire = 0x80000000;
   WriteRegister(software_trigger_addr, fire);
+}
+
+void Flea3Camera::RequestSingle() {
+  if (config_.enable_trigger) {
+    PollForTriggerReady();
+    FireSoftwareTrigger();
+  }
+}
+
+int Flea3Camera::expose_us() {
+  const auto shutter_prop = GetProperty(SHUTTER);
+  shutter_prop.absValue;
+  return 10000;
 }
 
 }  // namespace flea3

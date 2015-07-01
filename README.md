@@ -1,8 +1,8 @@
 # flea3
 
-![image](http://www.geeky-gadgets.com/wp-content/uploads/2012/07/Flea3.jpg)
+![image](http://www.ptgrey.com/content/images/thumbs/0002327_flea3-88-mp-color-usb3-vision-sony-imx121_772.jpeg)
 
-ROS driver for PointGrey Flea3 camera.
+Another ROS driver for Point Grey Flea3 camera.
 
 See the dynamic reconfigure file for all reconfigurable parameters.
 
@@ -26,13 +26,13 @@ http://www.matrix-vision.com/manuals/mvBlueFOX3/mvBC_page_quickstart.html#mvBC_s
 
 In `/etc/default/grub`, change
 ```
-GRUB_CMDLINE_LINUX_DEFAULT="quiet splash" 
+GRUB_CMDLINE_LINUX_DEFAULT="quiet splash"
 ```
 to
 ```
-GRUB_CMDLINE_LINUX_DEFAULT="quiet splash usbcore.usbfs_memory_mb=256" 
+GRUB_CMDLINE_LINUX_DEFAULT="quiet splash usbcore.usbfs_memory_mb=256"
 ```
-then do 
+then do
 ```
 sudo update-grub
 ```
