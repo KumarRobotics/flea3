@@ -580,8 +580,12 @@ bool Flea3Camera::PollForTriggerReady() {
   const unsigned int software_trigger_addr = 0x62C;
   unsigned int reg_val = 0;
 
+  Error error;
   do {
-    reg_val = ReadRegister(software_trigger_addr);
+    error = camera_.ReadRegister(software_trigger_addr, &reg_val);
+    if (error != PGRERROR_OK) {
+      return false;
+    }
   } while ((reg_val >> 31) != 0);
 
   return true;

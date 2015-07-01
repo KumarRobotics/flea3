@@ -15,9 +15,9 @@
     <arg name="fps" default="$(arg rate)"/>
 
     <arg name="video_mode" default="17"/>
-    <arg name="auto_exposure" default="true"/>
-    <arg name="auto_shutter" default="true"/>
-    <arg name="auto_gain" default="true"/>
+    <arg name="auto_exposure" default="false"/>
+    <arg name="auto_shutter" default="false"/>
+    <arg name="auto_gain" default="false"/>
     <arg name="auto_white_balance" default="true"/>
     <arg name="enable_trigger" default="true"/>
 

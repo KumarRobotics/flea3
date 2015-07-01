@@ -10,8 +10,7 @@ void SingleNode::Acquire() {
       const auto time = ros::Time::now() + expose_duration;
       flea3_ros_.PublishCamera(time);
     } else {
-      ROS_WARN("%s request failed. Reduce frame rate",
-               flea3_ros_.identifier().c_str());
+      ROS_WARN("%s request failed.", flea3_ros_.identifier().c_str());
     }
     Sleep();
   }
