@@ -76,6 +76,7 @@ void Flea3Camera::DisconnectDevice() {
 }
 
 void Flea3Camera::StarCapture() {
+  std::cout << serial() << " start capture" << std::endl;
   if (camera_.IsConnected() && !capturing_) {
     PGERROR(camera_.StartCapture(), "Failed to start capture");
     capturing_ = true;
@@ -587,23 +588,36 @@ bool Flea3Camera::PollForTriggerReady() {
   return true;
 }
 
-void Flea3Camera::FireSoftwareTrigger() {
+bool Flea3Camera::FireSoftwareTrigger() {
   const unsigned software_trigger_addr = 0x62C;
   const unsigned fire = 0x80000000;
-  WriteRegister(software_trigger_addr, fire);
+  const auto error = camera_.WriteRegister(software_trigger_addr, fire);
+  return error == PGRERROR_OK;
 }
 
-void Flea3Camera::RequestSingle() {
+bool Flea3Camera::RequestSingle() {
   if (config_.enable_trigger) {
-    PollForTriggerReady();
-    FireSoftwareTrigger();
+    if (PollForTriggerReady()) {
+      return FireSoftwareTrigger();
+    }
   }
+  return true;
 }
 
-int Flea3Camera::expose_us() {
-  const auto shutter_prop = GetProperty(SHUTTER);
-  shutter_prop.absValue;
-  return 10000;
+float Flea3Camera::getExposureTimeSec() {
+  if (config_.auto_shutter) {
+    Property shutter_prop;
+    shutter_prop.type = SHUTTER;
+    const auto error = camera_.GetProperty(&shutter_prop);
+    if (error == PGRERROR_OK) {
+      const auto exposure_ms = shutter_prop.absValue;
+      return exposure_ms * 1e-3;
+    } else {
+      return config_.shutter;
+    }
+  } else {
+    return config_.shutter;
+  }
 }
 
 }  // namespace flea3

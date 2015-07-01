@@ -8,6 +8,7 @@
 namespace flea3 {
 
 class StereoNode : public camera_base::CameraNodeBase<Flea3DynConfig> {
+ public:
   StereoNode(const ros::NodeHandle &pnh)
       : CameraNodeBase(pnh), left_ros_(pnh, "left"), right_ros_(pnh, "right") {}
 
@@ -17,6 +18,8 @@ class StereoNode : public camera_base::CameraNodeBase<Flea3DynConfig> {
  private:
   Flea3Ros left_ros_;
   Flea3Ros right_ros_;
-}
+};
+
+}  // namespace flea3
 
 #endif  // FLEA3_STEREO_NODE_H_

@@ -31,6 +31,7 @@ add_library(${PROJECT_NAME}
     src/flea3_camera.cpp
     src/flea3_ros.cpp
     src/single/single_node.cpp
+    src/stereo/stereo_node.cpp
     )
 target_link_libraries(
     ${PROJECT_NAME}
@@ -38,8 +39,11 @@ target_link_libraries(
     ${FlyCapture2_LIBRARIES}
     )
 
-add_executable(flea3_single_main src/single/single_main.cpp)
-target_link_libraries(flea3_single_main ${PROJECT_NAME})
+add_executable(flea3_single_node src/single/single_main.cpp)
+target_link_libraries(flea3_single_node ${PROJECT_NAME})
+
+add_executable(flea3_stereo_node src/stereo/stereo_main.cpp)
+target_link_libraries(flea3_stereo_node ${PROJECT_NAME})
 
 add_executable(flea3_list_cameras src/list_cameras.cpp)
 target_link_libraries(flea3_list_cameras ${PROJECT_NAME})

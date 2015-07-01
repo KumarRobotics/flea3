@@ -4,11 +4,15 @@ namespace flea3 {
 
 void SingleNode::Acquire() {
   while (is_acquire() && ros::ok()) {
-    flea3_ros_.RequestSingle();
-    const auto expose_us = flea3_ros_.camera().expose_us();
-    const auto expose_duration = ros::Duration(expose_us * 1e-6 / 2);
-    const auto time = ros::Time::now() + expose_duration;
-    flea3_ros_.PublishCamera(time);
+    if (flea3_ros_.RequestSingle()) {
+      const auto expose_duration =
+          ros::Duration(flea3_ros_.camera().getExposureTimeSec());
+      const auto time = ros::Time::now() + expose_duration;
+      flea3_ros_.PublishCamera(time);
+    } else {
+      ROS_WARN("%s request failed. Reduce frame rate",
+               flea3_ros_.identifier().c_str());
+    }
     Sleep();
   }
 }
