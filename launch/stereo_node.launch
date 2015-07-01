@@ -44,6 +44,7 @@
         <param name="auto_shutter" type="bool" value="$(arg auto_shutter)"/>
         <param name="auto_gain" type="bool" value="$(arg auto_gain)"/>
         <param name="auto_white_balance" type="bool" value="$(arg auto_white_balance)"/>
+        <param name="enable_trigger" type="bool" value="$(arg enable_trigger)"/>
     </node>
 
     <!-- Proc -->

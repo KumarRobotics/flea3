@@ -76,7 +76,6 @@ void Flea3Camera::DisconnectDevice() {
 }
 
 void Flea3Camera::StarCapture() {
-  std::cout << serial() << " start capture" << std::endl;
   if (camera_.IsConnected() && !capturing_) {
     PGERROR(camera_.StartCapture(), "Failed to start capture");
     capturing_ = true;
