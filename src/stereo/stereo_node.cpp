@@ -10,11 +10,8 @@ void StereoNode::Acquire() {
       const auto time = ros::Time::now() + expose_duration;
       left_ros_.PublishCamera(time);
       right_ros_.PublishCamera(time);
-    } else {
-      ROS_WARN("%s or %s request failed.", left_ros_.identifier().c_str(),
-               right_ros_.identifier().c_str());
+      Sleep();
     }
-    Sleep();
   }
 }
 

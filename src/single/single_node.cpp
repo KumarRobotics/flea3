@@ -9,10 +9,8 @@ void SingleNode::Acquire() {
           ros::Duration(flea3_ros_.camera().getExposureTimeSec());
       const auto time = ros::Time::now() + expose_duration;
       flea3_ros_.PublishCamera(time);
-    } else {
-      ROS_WARN("%s request failed.", flea3_ros_.identifier().c_str());
+      Sleep();
     }
-    Sleep();
   }
 }
 

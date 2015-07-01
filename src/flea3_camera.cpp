@@ -298,7 +298,8 @@ bool Flea3Camera::GrabImage(sensor_msgs::Image& image_msg,
   if (!(camera_.IsConnected() && capturing_)) return false;
 
   Image image;
-  PGERROR(camera_.RetrieveBuffer(&image), "Failed to retrieve buffer");
+  const auto error = camera_.RetrieveBuffer(&image);
+  if (error != PGRERROR_OK) return false;
 
   // TODO: Change this to use_ros_time?
   if (false) {
@@ -394,9 +395,8 @@ void Flea3Camera::SetProperty(const PropertyType& prop_type, bool& auto_on,
     prop.absValue = value;
     PGERROR(camera_.SetProperty(&prop), "Failed to set property");
 
-    if (auto_on) {
-      value = GetProperty(prop_type).absValue;
-    }
+    // Update value
+    if (auto_on) value = GetProperty(prop_type).absValue;
   }
 }
 

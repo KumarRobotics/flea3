@@ -1,6 +1,6 @@
 <launch>
     <!-- Common Interface -->
-    <arg name="rate" default="10"/>
+    <arg name="rate" default="7.5"/>
 
     <!-- Camera Settings -->
     <arg name="left" default="14472242"/>
