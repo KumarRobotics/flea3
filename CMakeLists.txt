@@ -4,7 +4,7 @@ project(flea3)
 find_package(catkin REQUIRED)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_SOURCE_DIR}/cmake)
-include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/flea3.cmake)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -std=c++11")
 
 find_package(catkin REQUIRED COMPONENTS
     roscpp nodelet camera_base message_generation
@@ -30,7 +30,8 @@ include_directories(
 add_library(${PROJECT_NAME}
     src/flea3_camera.cpp
     src/flea3_ros.cpp
-    src/single_node.cpp
+    src/single/single_node.cpp
+    src/stereo/stereo_node.cpp
     )
 target_link_libraries(
     ${PROJECT_NAME}
@@ -38,8 +39,14 @@ target_link_libraries(
     ${FlyCapture2_LIBRARIES}
     )
 
-FLEA3_ADD_EXE(list_cameras)
-FLEA3_ADD_EXE(single_main)
+add_executable(flea3_single_node src/single/single_main.cpp)
+target_link_libraries(flea3_single_node ${PROJECT_NAME})
+
+add_executable(flea3_stereo_node src/stereo/stereo_main.cpp)
+target_link_libraries(flea3_stereo_node ${PROJECT_NAME})
+
+add_executable(flea3_list_cameras src/list_cameras.cpp)
+target_link_libraries(flea3_list_cameras ${PROJECT_NAME})
 
 add_dependencies(${PROJECT_NAME}
     ${catkin_EXPORTED_TARGETS}

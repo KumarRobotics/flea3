@@ -297,13 +297,9 @@ bool Flea3Camera::GrabImage(sensor_msgs::Image& image_msg,
                             sensor_msgs::CameraInfo& cinfo_msg) {
   if (!(camera_.IsConnected() && capturing_)) return false;
 
-  if (config_.enable_trigger) {
-    PollForTriggerReady();
-    FireSoftwareTrigger();
-  }
-
   Image image;
-  PGERROR(camera_.RetrieveBuffer(&image), "Failed to retrieve buffer");
+  const auto error = camera_.RetrieveBuffer(&image);
+  if (error != PGRERROR_OK) return false;
 
   // TODO: Change this to use_ros_time?
   if (false) {
@@ -399,9 +395,8 @@ void Flea3Camera::SetProperty(const PropertyType& prop_type, bool& auto_on,
     prop.absValue = value;
     PGERROR(camera_.SetProperty(&prop), "Failed to set property");
 
-    if (auto_on) {
-      value = GetProperty(prop_type).absValue;
-    }
+    // Update value
+    if (auto_on) value = GetProperty(prop_type).absValue;
   }
 }
 
@@ -585,17 +580,47 @@ bool Flea3Camera::PollForTriggerReady() {
   const unsigned int software_trigger_addr = 0x62C;
   unsigned int reg_val = 0;
 
+  Error error;
   do {
-    reg_val = ReadRegister(software_trigger_addr);
+    error = camera_.ReadRegister(software_trigger_addr, &reg_val);
+    if (error != PGRERROR_OK) {
+      return false;
+    }
   } while ((reg_val >> 31) != 0);
 
   return true;
 }
 
-void Flea3Camera::FireSoftwareTrigger() {
+bool Flea3Camera::FireSoftwareTrigger() {
   const unsigned software_trigger_addr = 0x62C;
   const unsigned fire = 0x80000000;
-  WriteRegister(software_trigger_addr, fire);
+  const auto error = camera_.WriteRegister(software_trigger_addr, fire);
+  return error == PGRERROR_OK;
+}
+
+bool Flea3Camera::RequestSingle() {
+  if (config_.enable_trigger) {
+    if (PollForTriggerReady()) {
+      return FireSoftwareTrigger();
+    }
+  }
+  return true;
+}
+
+float Flea3Camera::getExposureTimeSec() {
+  if (config_.auto_shutter) {
+    Property shutter_prop;
+    shutter_prop.type = SHUTTER;
+    const auto error = camera_.GetProperty(&shutter_prop);
+    if (error == PGRERROR_OK) {
+      const auto exposure_ms = shutter_prop.absValue;
+      return exposure_ms * 1e-3;
+    } else {
+      return config_.shutter;
+    }
+  } else {
+    return config_.shutter;
+  }
 }
 
 }  // namespace flea3

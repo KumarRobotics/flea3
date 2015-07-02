@@ -13,6 +13,8 @@ class Flea3Ros : public camera_base::CameraRosBase {
 
   Flea3Camera& camera() { return flea3_; }
 
+  bool RequestSingle() { return flea3_.RequestSingle(); }
+
   bool Grab(const sensor_msgs::ImagePtr& image_msg,
             const sensor_msgs::CameraInfoPtr& cinfo_msg) override;
 
@@ -24,4 +26,5 @@ class Flea3Ros : public camera_base::CameraRosBase {
 };
 
 }  // namespace flea3
+
 #endif  // FLEA3_FLEA3_ROS_H_

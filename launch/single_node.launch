@@ -25,7 +25,7 @@
   <arg name="calib" default="false"/>
 
   <!-- Node -->
-  <node pkg="flea3" type="flea3_single_main" name="$(arg camera)" output="$(arg output)">
+  <node pkg="flea3" type="flea3_single_node" name="$(arg camera)" output="$(arg output)">
   	<param name="identifier" type="string" value="$(arg serial)"/>
   	<param name="frame_id" type="string" value="$(arg frame_id)"/>
   	<param name="camera_name" type="string" value="$(arg camera_name)"/>

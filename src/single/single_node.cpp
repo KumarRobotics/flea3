@@ -4,8 +4,13 @@ namespace flea3 {
 
 void SingleNode::Acquire() {
   while (is_acquire() && ros::ok()) {
-    flea3_ros_.PublishCamera(ros::Time::now());
-    Sleep();
+    if (flea3_ros_.RequestSingle()) {
+      const auto expose_duration =
+          ros::Duration(flea3_ros_.camera().getExposureTimeSec());
+      const auto time = ros::Time::now() + expose_duration;
+      flea3_ros_.PublishCamera(time);
+      Sleep();
+    }
   }
 }
 

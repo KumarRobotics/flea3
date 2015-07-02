@@ -29,6 +29,8 @@ class Flea3Camera {
   void Configure(Config& config);
   void StarCapture();
   void StopCapture();
+  bool RequestSingle();
+  float getExposureTimeSec();
 
  private:
   void EnableMetadata();
@@ -64,10 +66,9 @@ class Flea3Camera {
   void SetBrightness(double& brightness);
   void SetGamma(double& gamma);
 
-  void SetTriggerMode(bool &enable_trigger);
+  void SetTriggerMode(bool& enable_trigger);
   bool PollForTriggerReady();
-  void FireSoftwareTrigger();
-
+  bool FireSoftwareTrigger();
 
   void SetProperty(const PropertyType& prop_type, bool& auto_on, double& value);
   void SetProperty(const PropertyType& prop_type, double& value);
