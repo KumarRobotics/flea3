@@ -29,7 +29,7 @@ bool Flea3Camera::Connect() {
   bool success;
   try {
     ConnectDevice(&guid);
-    EnableMetadata();
+    EnableMetadata(camera_);
     // For now this only set the grab timeout
     SetConfiguration();
     success = true;
@@ -110,18 +110,6 @@ void Flea3Camera::Configure(Config& config) {
   config_ = config;
 }
 
-void Flea3Camera::EnableMetadata() {
-  EmbeddedImageInfo info;
-  info.gain.onOff = true;
-  info.shutter.onOff = true;
-  info.exposure.onOff = true;
-  info.timestamp.onOff = true;
-  info.brightness.onOff = true;
-  info.whiteBalance.onOff = true;
-  info.frameCounter.onOff = true;
-  PGERROR(camera_.SetEmbeddedImageInfo(&info), "Failed to enable metadata");
-}
-
 void Flea3Camera::SetVideoModeAndFrameRateAndFormat7(int& video_mode,
                                                      double& frame_rate,
                                                      int& format7_mode,
@@ -190,7 +178,7 @@ void Flea3Camera::SetFormat7(const Mode& mode, double& frame_rate,
         camera_.SetFormat7Configuration(
             &fmt7_settings, fmt7_packet_info.first.recommendedBytesPerPacket),
         "Failed to set format7 configuration");
-    SetProperty(FRAME_RATE, frame_rate);
+    SetProperty(camera_, FRAME_RATE, frame_rate);
   } else {
     ROS_WARN("Format 7 Settings are not valid");
   }
@@ -249,7 +237,7 @@ void Flea3Camera::SetVideoModeAndFrameRate(const VideoMode& video_mode,
   // Set to max supported frame rate and use the config value to fine tune it
   const auto max_frame_rate = frame_rates_[max_frame_rate_pg];
   frame_rate = std::min(frame_rate, max_frame_rate);
-  SetProperty(FRAME_RATE, frame_rate);
+  SetProperty(camera_, FRAME_RATE, frame_rate);
 }
 
 void Flea3Camera::SetVideoModeAndFrameRate(const VideoMode& video_mode,
@@ -361,82 +349,44 @@ void Flea3Camera::SetWhiteBalanceRedBlue(bool& auto_white_balance, int& red,
       red = 550;
       return;
     }
-    WriteRegister(white_balance_addr, enable);
+    WriteRegister(camera_, white_balance_addr, enable);
     value |= 1 << 24;  // Auto
     if (config_.auto_white_balance) {
-      const auto prop = GetProperty(WHITE_BALANCE);
+      const auto prop = GetProperty(camera_, WHITE_BALANCE);
       red = prop.valueA;
       blue = prop.valueB;
     }
   } else {
     value |= blue << 12 | red;
   }
-  WriteRegister(white_balance_addr, value);
+  WriteRegister(camera_, white_balance_addr, value);
 }
 
 bool Flea3Camera::IsAutoWhiteBalanceSupported() {
-  const auto pinfo = GetPropertyInfo(WHITE_BALANCE);
+  const auto pinfo = GetPropertyInfo(camera_, WHITE_BALANCE);
   return pinfo.autoSupported;
 }
 
-void Flea3Camera::SetProperty(const PropertyType& prop_type, bool& auto_on,
-                              double& value) {
-  auto prop_info = GetPropertyInfo(prop_type);
-  if (prop_info.present) {
-    Property prop;
-    prop.type = prop_type;
-    auto_on = auto_on && prop_info.autoSupported;  // update auto_on
-    prop.autoManualMode = auto_on;
-    prop.absControl = prop_info.absValSupported;
-    prop.onOff = prop_info.onOffSupported;
-
-    value = std::max<double>(std::min<double>(value, prop_info.absMax),
-                             prop_info.absMin);
-    prop.absValue = value;
-    PGERROR(camera_.SetProperty(&prop), "Failed to set property");
-
-    // Update value
-    if (auto_on) value = GetProperty(prop_type).absValue;
-  }
-}
-
-void Flea3Camera::SetProperty(const PropertyType& prop_type, double& value) {
-  const auto prop_info = GetPropertyInfo(prop_type);
-  if (prop_info.present) {
-    Property prop;
-    prop.type = prop_type;
-    prop.autoManualMode = false;
-    prop.absControl = prop_info.absValSupported;
-    prop.onOff = prop_info.onOffSupported;
-    value = std::max<double>(std::min<double>(value, prop_info.absMax),
-                             prop_info.absMin);
-    prop.absValue = value;
-    PGERROR(camera_.SetProperty(&prop), "Failed to set property");
-  }
-}
-
 void Flea3Camera::SetExposure(bool& auto_exposure, double& exposure) {
-  SetProperty(AUTO_EXPOSURE, auto_exposure, exposure);
+  SetProperty(camera_, AUTO_EXPOSURE, auto_exposure, exposure);
 }
 
 void Flea3Camera::SetShutter(bool& auto_shutter, double& shutter) {
   auto shutter_ms = 1000.0 * shutter;
-  SetProperty(SHUTTER, auto_shutter, shutter_ms);
+  SetProperty(camera_, SHUTTER, auto_shutter, shutter_ms);
   shutter = shutter_ms / 1000.0;
 }
 
 void Flea3Camera::SetGain(bool& auto_gain, double& gain) {
-  SetProperty(GAIN, auto_gain, gain);
+  SetProperty(camera_, GAIN, auto_gain, gain);
 }
 
 void Flea3Camera::SetBrightness(double& brightness) {
-  SetProperty(BRIGHTNESS, brightness);
+  SetProperty(camera_, BRIGHTNESS, brightness);
 }
 
-void Flea3Camera::SetGamma(double& gamma) { SetProperty(GAMMA, gamma); }
-
-void Flea3Camera::WriteRegister(unsigned address, unsigned value) {
-  PGERROR(camera_.WriteRegister(address, value), "Failed to write register");
+void Flea3Camera::SetGamma(double& gamma) {
+  SetProperty(camera_, GAMMA, gamma);
 }
 
 // TODO:
@@ -463,35 +413,14 @@ void Flea3Camera::SetTriggerMode(bool& enable_trigger) {
 }
 
 float Flea3Camera::GetCameraTemperature() {
-  const auto prop = GetProperty(TEMPERATURE);
+  const auto prop = GetProperty(camera_, TEMPERATURE);
   // It returns values of 10 * K
   return prop.valueA / 10.0f - 273.15f;
 }
 
 float Flea3Camera::GetCameraFrameRate() {
-  const auto prop = GetProperty(FRAME_RATE);
+  const auto prop = GetProperty(camera_, FRAME_RATE);
   return prop.absValue;
-}
-
-Property Flea3Camera::GetProperty(const PropertyType& prop_type) {
-  Property prop;
-  prop.type = prop_type;
-  PGERROR(camera_.GetProperty(&prop), "Failed to get property");
-  return prop;
-}
-
-PropertyInfo Flea3Camera::GetPropertyInfo(const PropertyType& prop_type) {
-  PropertyInfo prop_info;
-  prop_info.type = prop_type;
-  PGERROR(camera_.GetPropertyInfo(&prop_info), "Failed to get property info");
-  return prop_info;
-}
-
-
-unsigned Flea3Camera::ReadRegister(unsigned address) {
-  unsigned reg_val;
-  PGERROR(camera_.ReadRegister(address, &reg_val), "Failed to read register");
-  return reg_val;
 }
 
 bool Flea3Camera::PollForTriggerReady() {

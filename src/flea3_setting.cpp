@@ -87,4 +87,76 @@ void printProperty(const Property& prop, const std::string& prop_name) {
   std::cout << std::endl;
 }
 
+unsigned ReadRegister(Camera& camera, unsigned address) {
+  unsigned reg_val;
+  PGERROR(camera.ReadRegister(address, &reg_val), "Failed to read register");
+  return reg_val;
+}
+
+PropertyInfo GetPropertyInfo(Camera& camera, const PropertyType& prop_type) {
+  PropertyInfo prop_info;
+  prop_info.type = prop_type;
+  PGERROR(camera.GetPropertyInfo(&prop_info), "Failed to get property info");
+  return prop_info;
+}
+
+Property GetProperty(Camera& camera, const PropertyType& prop_type) {
+  Property prop;
+  prop.type = prop_type;
+  PGERROR(camera.GetProperty(&prop), "Failed to get property");
+  return prop;
+}
+
+void SetProperty(Camera& camera, const PropertyType& prop_type, bool& auto_on,
+                 double& value) {
+  auto prop_info = GetPropertyInfo(camera, prop_type);
+  if (prop_info.present) {
+    Property prop;
+    prop.type = prop_type;
+    auto_on = auto_on && prop_info.autoSupported;  // update auto_on
+    prop.autoManualMode = auto_on;
+    prop.absControl = prop_info.absValSupported;
+    prop.onOff = prop_info.onOffSupported;
+
+    value = std::max<double>(std::min<double>(value, prop_info.absMax),
+                             prop_info.absMin);
+    prop.absValue = value;
+    PGERROR(camera.SetProperty(&prop), "Failed to set property");
+
+    // Update value
+    if (auto_on) value = GetProperty(camera, prop_type).absValue;
+  }
+}
+
+void SetProperty(Camera& camera, const PropertyType& prop_type, double& value) {
+  const auto prop_info = GetPropertyInfo(camera, prop_type);
+  if (prop_info.present) {
+    Property prop;
+    prop.type = prop_type;
+    prop.autoManualMode = false;
+    prop.absControl = prop_info.absValSupported;
+    prop.onOff = prop_info.onOffSupported;
+    value = std::max<double>(std::min<double>(value, prop_info.absMax),
+                             prop_info.absMin);
+    prop.absValue = value;
+    PGERROR(camera.SetProperty(&prop), "Failed to set property");
+  }
+}
+
+void WriteRegister(Camera& camera, unsigned address, unsigned value) {
+  PGERROR(camera.WriteRegister(address, value), "Failed to write register");
+}
+
+void EnableMetadata(Camera& camera) {
+  EmbeddedImageInfo info;
+  info.gain.onOff = true;
+  info.shutter.onOff = true;
+  info.exposure.onOff = true;
+  info.timestamp.onOff = true;
+  info.brightness.onOff = true;
+  info.whiteBalance.onOff = true;
+  info.frameCounter.onOff = true;
+  PGERROR(camera.SetEmbeddedImageInfo(&info), "Failed to enable metadata");
+}
+
 }  // namespace flea3

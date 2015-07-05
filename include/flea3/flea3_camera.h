@@ -30,14 +30,11 @@ class Flea3Camera {
   float getExposureTimeSec();
 
  private:
-  void EnableMetadata();
   void ConnectDevice(PGRGuid* guid);
   void DisconnectDevice();
   std::string AvailableDevice();
 
   CameraInfo GetCameraInfo();
-  Property GetProperty(const PropertyType& prop_type);
-  PropertyInfo GetPropertyInfo(const PropertyType& prop_type);
 
   float GetCameraFrameRate();
   float GetCameraTemperature();
@@ -67,11 +64,6 @@ class Flea3Camera {
   bool PollForTriggerReady();
   bool FireSoftwareTrigger();
 
-  void SetProperty(const PropertyType& prop_type, bool& auto_on, double& value);
-  void SetProperty(const PropertyType& prop_type, double& value);
-  void WriteRegister(unsigned address, unsigned value);
-  unsigned ReadRegister(unsigned address);
-
   bool IsVideoModeSupported(const VideoMode& video_mode);
   bool IsFormat7Supported();
   bool IsAutoWhiteBalanceSupported();
@@ -91,4 +83,4 @@ class Flea3Camera {
 
 }  // namespace flea3
 
-#endif  // FLEA3_FLEA3_H_
+#endif  // FLEA3_FLEA3_CAMERA_H_
