@@ -299,7 +299,7 @@ void Flea3Camera::SetGamma(double& gamma) {
   SetProperty(camera_, GAMMA, gamma);
 }
 
-// TODO:
+// TODO: Add support for GPIO external trigger
 void Flea3Camera::SetTriggerMode(bool& enable_trigger) {
   TriggerModeInfo trigger_mode_info;
   PGERROR(camera_.GetTriggerModeInfo(&trigger_mode_info),
@@ -317,7 +317,7 @@ void Flea3Camera::SetTriggerMode(bool& enable_trigger) {
   trigger_mode.onOff = enable_trigger;
   trigger_mode.mode = 0;
   trigger_mode.parameter = 0;
-  // A source of 7 means software trigger
+  // Source 7 means software trigger
   trigger_mode.source = 7;
   PGERROR(camera_.SetTriggerMode(&trigger_mode), "Failed to set trigger mode");
 }
