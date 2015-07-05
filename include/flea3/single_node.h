@@ -11,8 +11,7 @@ using Config = ::flea3::Flea3DynConfig;
 
 class SingleNode : public camera_base::CameraNodeBase<Config> {
  public:
-  explicit SingleNode(const ros::NodeHandle &pnh)
-      : CameraNodeBase(pnh), flea3_ros_(pnh) {}
+  explicit SingleNode(const ros::NodeHandle &pnh);
 
   void Acquire() override;
   void Setup(Config &config) override;

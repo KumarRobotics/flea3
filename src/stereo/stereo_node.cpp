@@ -2,6 +2,9 @@
 
 namespace flea3 {
 
+StereoNode::StereoNode(const ros::NodeHandle& pnh)
+    : CameraNodeBase(pnh), left_ros_(pnh, "left"), right_ros_(pnh, "right") {}
+
 void StereoNode::Acquire() {
   while (is_acquire() && ros::ok()) {
     if (left_ros_.RequestSingle() && right_ros_.RequestSingle()) {
