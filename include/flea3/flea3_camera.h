@@ -6,11 +6,8 @@
 #include <sensor_msgs/Image.h>
 #include <sensor_msgs/CameraInfo.h>
 
-#define PGERROR(err, msg) flea3::HandleError(err, msg, __func__)
-
-using namespace FlyCapture2;
-
 namespace flea3 {
+using namespace FlyCapture2;
 
 class Flea3Camera {
  public:
@@ -91,16 +88,6 @@ class Flea3Camera {
   bool capturing_{false};
   std::vector<double> frame_rates_;
 };
-
-void HandleError(const Error& error, const std::string& message = "",
-                 const std::string& func_name = "");
-
-void PrintPropertyInfo(const PropertyInfo& prop_info,
-                       const std::string& prop_name);
-void PrintProperty(const Property& prop, const std::string& prop_name);
-
-std::string BayerFormatToEncoding(const BayerTileFormat& bayer_format);
-std::string PixelFormatToEncoding(unsigned bits_per_pixel);
 
 }  // namespace flea3
 

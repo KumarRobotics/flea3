@@ -1,6 +1,7 @@
 #include <iostream>
 #include <sstream>
-#include "flea3/flea3_camera.h"
+#include <stdexcept>
+#include "flea3/flea3_setting.h"
 
 using namespace FlyCapture2;
 
