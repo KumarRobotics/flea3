@@ -34,16 +34,6 @@ class Flea3Camera {
   void DisconnectDevice();
   std::string AvailableDevice();
 
-  CameraInfo GetCameraInfo();
-
-  float GetCameraFrameRate();
-  float GetCameraTemperature();
-
-  Mode GetFirstFormat7Mode();
-  FrameRate GetMaxFrameRate(const VideoMode& video_mode);
-  std::pair<Format7Info, bool> GetFormat7Info(const Mode& mode);
-  std::pair<VideoMode, FrameRate> GetVideoModeAndFrameRate();
-
   void SetConfiguration();
   void SetWhiteBalanceRedBlue(bool& auto_white_balance, int& red, int& blue);
   void SetVideoModeAndFrameRateAndFormat7(int& video_mode, double& frame_rate,
@@ -63,14 +53,6 @@ class Flea3Camera {
   void SetTriggerMode(bool& enable_trigger);
   bool PollForTriggerReady();
   bool FireSoftwareTrigger();
-
-  bool IsVideoModeSupported(const VideoMode& video_mode);
-  bool IsFormat7Supported();
-  bool IsAutoWhiteBalanceSupported();
-  std::pair<Format7PacketInfo, bool> IsFormat7SettingsValid(
-      const Format7ImageSettings& fmt7_settings);
-  bool IsVideoModeAndFrameRateSupported(const VideoMode& video_mode,
-                                        const FrameRate& frame_rate);
 
   BusManager bus_manager_;
   Camera camera_;

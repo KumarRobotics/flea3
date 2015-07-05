@@ -107,6 +107,66 @@ Property GetProperty(Camera& camera, const PropertyType& prop_type) {
   return prop;
 }
 
+std::pair<Format7Info, bool> GetFormat7Info(Camera& camera, const Mode& mode) {
+  Format7Info fmt7_info;
+  bool supported;
+  fmt7_info.mode = mode;
+  PGERROR(camera.GetFormat7Info(&fmt7_info, &supported),
+          "Failed to get format 7 info");
+  return {fmt7_info, supported};
+}
+
+Mode GetFirstFormat7Mode(Camera& camera) {
+  for (int i = 0; i <= 8; ++i) {
+    const auto mode = static_cast<Mode>(i);
+    const auto fmt7_info = GetFormat7Info(camera, mode);
+    if (fmt7_info.second) {
+      return mode;
+    }
+  }
+  // This should never happen
+  return {};
+}
+
+CameraInfo GetCameraInfo(Camera& camera) {
+  CameraInfo camera_info;
+  PGERROR(camera.GetCameraInfo(&camera_info), "Failed to get camera info");
+  return camera_info;
+}
+
+float GetCameraFrameRate(Camera& camera) {
+  const auto prop = GetProperty(camera, FRAME_RATE);
+  return prop.absValue;
+}
+
+FrameRate GetMaxFrameRate(Camera& camera, const VideoMode& video_mode) {
+  FrameRate max_frame_rate;
+  // This magic number 2 skips VideoMode format 7
+  for (int i = NUM_FRAMERATES - 2; i >= 0; --i) {
+    const auto frame_rate = static_cast<FrameRate>(i);
+    if (IsVideoModeAndFrameRateSupported(camera, video_mode, frame_rate)) {
+      max_frame_rate = frame_rate;
+      // We return here because there must be one frame rate supported
+      break;
+    }
+  }
+  return max_frame_rate;
+}
+
+std::pair<VideoMode, FrameRate> GetVideoModeAndFrameRate(Camera& camera) {
+  VideoMode video_mode;
+  FrameRate frame_rate;
+  PGERROR(camera.GetVideoModeAndFrameRate(&video_mode, &frame_rate),
+          "Failed to get VideoMode and FrameRate");
+  return {video_mode, frame_rate};
+}
+
+float GetCameraTemperature(Camera& camera) {
+  const auto prop = GetProperty(camera, TEMPERATURE);
+  // It returns values of 10 * K
+  return prop.valueA / 10.0f - 273.15f;
+}
+
 void SetProperty(Camera& camera, const PropertyType& prop_type, bool& auto_on,
                  double& value) {
   auto prop_info = GetPropertyInfo(camera, prop_type);
@@ -157,6 +217,48 @@ void EnableMetadata(Camera& camera) {
   info.whiteBalance.onOff = true;
   info.frameCounter.onOff = true;
   PGERROR(camera.SetEmbeddedImageInfo(&info), "Failed to enable metadata");
+}
+
+bool IsAutoWhiteBalanceSupported(Camera& camera) {
+  const auto pinfo = GetPropertyInfo(camera, WHITE_BALANCE);
+  return pinfo.autoSupported;
+}
+
+bool IsVideoModeSupported(Camera& camera, const VideoMode& video_mode) {
+  return IsVideoModeAndFrameRateSupported(camera, video_mode, FRAMERATE_1_875);
+}
+
+bool IsVideoModeAndFrameRateSupported(Camera& camera,
+                                      const VideoMode& video_mode,
+                                      const FrameRate& frame_rate) {
+  bool supported;
+  PGERROR(
+      camera.GetVideoModeAndFrameRateInfo(video_mode, frame_rate, &supported),
+      "Failed to get video mode and frame rate info");
+  return supported;
+}
+
+bool IsFormat7Supported(Camera& camera) {
+  // TODO: this is a hack, there are more than 8 modes
+  const int num_modes{8};
+  for (int i = 0; i <= num_modes; ++i) {
+    const auto mode = static_cast<Mode>(i);
+    if (GetFormat7Info(camera, mode).second) {
+      // Supported
+      return true;
+    }
+  }
+  return false;
+}
+
+std::pair<Format7PacketInfo, bool> IsFormat7SettingsValid(
+    Camera& camera, const Format7ImageSettings& fmt7_settings) {
+  Format7PacketInfo fmt7_packet_info;
+  bool valid;
+  PGERROR(
+      camera.ValidateFormat7Settings(&fmt7_settings, &valid, &fmt7_packet_info),
+      "Failed to validate format7 settings");
+  return {fmt7_packet_info, valid};
 }
 
 }  // namespace flea3
