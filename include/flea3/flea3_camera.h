@@ -34,6 +34,7 @@ class Flea3Camera {
   void DisconnectDevice();
   std::string AvailableDevice();
 
+  void EnableAutoWhiteBalance();
   void SetConfiguration();
   void SetWhiteBalanceRedBlue(bool& auto_white_balance, int& red, int& blue);
   void SetVideoModeAndFrameRateAndFormat7(int& video_mode, double& frame_rate,

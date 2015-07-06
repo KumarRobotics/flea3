@@ -30,6 +30,10 @@ bool Flea3Camera::Connect() {
   try {
     ConnectDevice(&guid);
     EnableMetadata(camera_);
+    // This is a total hack, it exists because one of my camera doesn't enable
+    // auto white balance by default. You have to write to its presence register
+    // to bring it online.
+    EnableAutoWhiteBalance();
     // For now this only set the grab timeout
     SetConfiguration();
     success = true;
@@ -240,19 +244,20 @@ bool Flea3Camera::GrabImage(sensor_msgs::Image& image_msg,
 
 void Flea3Camera::SetWhiteBalanceRedBlue(bool& auto_white_balance, int& red,
                                          int& blue) {
+  const int default_blue = 800;
+  const int default_red = 550;
   if (!camera_info_.isColorCamera) {
     // Not even a color camera, what are you thinking?
     ROS_ERROR("Camera %s is not a color camera, white balance not supported",
               serial().c_str());
     auto_white_balance = false;
-    red = 0;
-    blue = 0;
+    red = default_red;
+    blue = default_blue;
     return;
   }
 
-  unsigned white_balance_addr = 0x80C;
-  unsigned enable = 1 << 31;
-  unsigned value = 1 << 25;  // Turn on
+  const unsigned white_balance_addr = 0x80C;
+  unsigned value = 1 << 25;  // Enable and turn on
 
   if (auto_white_balance) {
     if (!IsAutoWhiteBalanceSupported(camera_)) {
@@ -260,11 +265,10 @@ void Flea3Camera::SetWhiteBalanceRedBlue(bool& auto_white_balance, int& red,
       ROS_WARN("Auto white balance not supported");
       auto_white_balance = false;
       // Set to some reasonable value
-      blue = 800;
-      red = 550;
+      blue = default_blue;
+      red = default_red;
       return;
     }
-    WriteRegister(camera_, white_balance_addr, enable);
     value |= 1 << 24;  // Auto
     if (config_.auto_white_balance) {
       const auto prop = GetProperty(camera_, WHITE_BALANCE);
@@ -275,6 +279,10 @@ void Flea3Camera::SetWhiteBalanceRedBlue(bool& auto_white_balance, int& red,
     value |= blue << 12 | red;
   }
   WriteRegister(camera_, white_balance_addr, value);
+}
+
+void Flea3Camera::EnableAutoWhiteBalance() {
+  WriteRegister(camera_, 0x80C, 1 << 31);
 }
 
 void Flea3Camera::SetExposure(bool& auto_exposure, double& exposure) {

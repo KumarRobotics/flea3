@@ -23,7 +23,7 @@ void StereoNode::Setup(Flea3DynConfig& config) {
   right_ros_.Stop();
   left_ros_.set_fps(config.fps);
   right_ros_.set_fps(config.fps);
-  auto config_cpy = config;
+  Flea3DynConfig config_cpy = config;
   left_ros_.camera().Configure(config_cpy);
   right_ros_.camera().Configure(config);
   left_ros_.Start();
