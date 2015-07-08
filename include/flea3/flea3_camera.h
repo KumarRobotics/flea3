@@ -50,6 +50,7 @@ class Flea3Camera {
   void SetGain(bool& auto_gain, double& gain);
   void SetBrightness(double& brightness);
   void SetGamma(double& gamma);
+  void SetRawBayerOutput(bool& raw_bayer_output);
 
   void SetTriggerMode(bool& enable_trigger);
   bool PollForTriggerReady();

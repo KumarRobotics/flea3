@@ -108,6 +108,7 @@ void Flea3Camera::Configure(Config& config) {
   SetGain(config.auto_gain, config.gain);
   SetBrightness(config.brightness);
   SetGamma(config.gamma);
+  SetRawBayerOutput(config.raw_bayer_output);
   SetTriggerMode(config.enable_trigger);
 
   // Save this config
@@ -225,6 +226,7 @@ bool Flea3Camera::GrabImage(sensor_msgs::Image& image_msg,
   // Set image encodings
   const auto bayer_format = image.GetBayerTileFormat();
   const auto bits_per_pixel = image.GetBitsPerPixel();
+  std::cout << "bayer_format: " << bayer_format << std::endl;
   std::string encoding;
   if (camera_info_.isColorCamera) {
     if (bayer_format != NONE) {
@@ -305,6 +307,17 @@ void Flea3Camera::SetBrightness(double& brightness) {
 
 void Flea3Camera::SetGamma(double& gamma) {
   SetProperty(camera_, GAMMA, gamma);
+}
+
+void Flea3Camera::SetRawBayerOutput(bool& raw_bayer_output) {
+  // Because this only works in standard video mode, we only enable this if
+  // video mode is not format 7
+  if (config_.video_mode == Flea3Dyn_format7) {
+    raw_bayer_output = false;
+    return;
+  }
+  // See Point Grey Register Reference document section 5.8
+  WriteRegister(camera_, 0x1050, static_cast<unsigned>(raw_bayer_output));
 }
 
 // TODO: Add support for GPIO external trigger
