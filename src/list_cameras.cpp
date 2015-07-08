@@ -5,14 +5,32 @@
 
 using namespace FlyCapture2;
 
+std::string InterfaceTypeToString(const InterfaceType& interface_type) {
+  switch (interface_type) {
+    case INTERFACE_IEEE1394:
+      return "ieee1394";
+    case INTERFACE_USB2:
+      return "usb2";
+    case INTERFACE_USB3:
+      return "usb3";
+    case INTERFACE_GIGE:
+      return "gige";
+    case INTERFACE_UNKNOWN:
+    default:
+      return "unknown";
+  }
+}
+
 void printCameraInfo(const CameraInfo& cinfo) {
+  const auto interface_type = InterfaceTypeToString(cinfo.interfaceType);
   std::cout << "Serial: " << cinfo.serialNumber
             << ", Model: " << cinfo.modelName
             << ", Vendor: " << cinfo.vendorName
             << ", Sensor: " << cinfo.sensorInfo
             << ", Resolution: " << cinfo.sensorResolution
             << ", Color: " << std::boolalpha << cinfo.isColorCamera
-            << ", Firmware Version: " << cinfo.firmwareVersion << std::endl;
+            << ", Firmware Version: " << cinfo.firmwareVersion
+            << ", Interface Type: " << interface_type << std::endl;
 }
 
 int main(int argc, char** argv) {
