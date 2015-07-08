@@ -10,7 +10,7 @@ void StereoNode::Acquire() {
     if (left_ros_.RequestSingle() && right_ros_.RequestSingle()) {
       const auto expose_duration =
           ros::Duration(left_ros_.camera().getExposureTimeSec());
-      const auto time = ros::Time::now() + expose_duration;
+      const auto time = ros::Time::now() + expose_duration / 2;
       left_ros_.PublishCamera(time);
       right_ros_.PublishCamera(time);
       Sleep();

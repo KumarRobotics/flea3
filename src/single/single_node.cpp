@@ -10,7 +10,7 @@ void SingleNode::Acquire() {
     if (flea3_ros_.RequestSingle()) {
       const auto expose_duration =
           ros::Duration(flea3_ros_.camera().getExposureTimeSec());
-      flea3_ros_.PublishCamera(ros::Time::now() + expose_duration);
+      flea3_ros_.PublishCamera(ros::Time::now() + expose_duration / 2);
       Sleep();
     }
   }
