@@ -30,8 +30,6 @@ class Flea3Camera {
   float getExposureTimeSec();
 
  private:
-  void ConnectDevice(PGRGuid* guid);
-  void DisconnectDevice();
   std::string AvailableDevice();
 
   void EnableAutoWhiteBalance();

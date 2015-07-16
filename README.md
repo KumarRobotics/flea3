@@ -1,21 +1,23 @@
 # flea3
 
-![image](http://www.ptgrey.com/content/images/thumbs/0002327_flea3-88-mp-color-usb3-vision-sony-imx121_772.jpeg)
+![image](https://s-media-cache-ak0.pinimg.com/736x/93/3b/2b/933b2b91ddf297db234e2f6d1e046e5c.jpg)
 
-Another ROS driver for Point Grey Flea3 camera.
+Another ROS driver for Point Grey USB3 camera.
 
 **Note**:
 
-It is called `flea3` instead of `pointgrey_camera_driver` because I only have flea3 cameras. So if you have another point grey camera, it might not work.
+I recently got a Grasshopper3 camera, so this driver is not exclusively for Flea3 but could also be used for Grasshopper3.
 
 [Flea3](http://www.ptgrey.com/flea3-usb3-vision-cameras)
+
+[Grasshopper3](http://www.ptgrey.com/grasshopper3-usb3-vision-cameras)
 
 Dependency:
 [`camera_base`](https://github.com/KumarRobotics/camera_base)
 
 ## Supported hardware
 
-This driver should work with any Point Grey Flea3 usb3.0 cameras. I only tested it with [FL3-U3-13E4C-C](http://www.ptgrey.com/flea3-13-mp-color-usb3-vision-e2v-ev76c560-camera)
+This driver should work with any Point Grey Flea3 and Grasshopper3 usb3.0 cameras. I only tested it with [FL3-U3-13E4C-C](http://www.ptgrey.com/flea3-13-mp-color-usb3-vision-e2v-ev76c560-camera) and [GS3-U3-23S6C-C](http://www.ptgrey.com/grasshopper3-23-mp-color-usb3-vision-sony-pregius-imx174).
 
 See the dynamic reconfigure file for all reconfigurable parameters.
 
@@ -44,16 +46,20 @@ Usage:
 ```
 roslaunch flea3 single_node.launch device:=13344889
 ```
+
 * stereo camera
 ```
 roslaunch flea3 stereo_node.launch left:=13344889 right:=14472242
 ```
+Note that the `stereo_node` uses software trigger to synchronize two cameras and the delay is not compensated.
 
 ## FlyCapture2
 
 FlyCapture2 can be downloaded from [here](http://www.ptgrey.com/support/downloads)
 
-[Technical Manual](http://www.ptgrey.com/support/downloads/10120)
+[Flea3 Technical Manual](http://www.ptgrey.com/support/downloads/10120)
+
+[Grasshopper3 Technical Manual](http://www.ptgrey.com/support/downloads/10125)
 
 [Register Reference](http://www.ptgrey.com/support/downloads/10130/)
 

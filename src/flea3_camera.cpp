@@ -20,15 +20,18 @@ Flea3Camera::Flea3Camera(const std::string& serial) : serial_(serial) {
   }
 }
 
-Flea3Camera::~Flea3Camera() { DisconnectDevice(); }
+Flea3Camera::~Flea3Camera() {
+  if (camera_.IsConnected())
+    PgrError(camera_.Disconnect(), "Failed to disconnect camera");
+}
 
 bool Flea3Camera::Connect() {
   PGRGuid guid;
-  PGERROR(bus_manager_.GetCameraFromSerialNumber(serial_id(), &guid),
-          serial_ + " not found. " + AvailableDevice());
+  PgrError(bus_manager_.GetCameraFromSerialNumber(serial_id(), &guid),
+           serial_ + " not found. " + AvailableDevice());
   bool success;
   try {
-    ConnectDevice(&guid);
+    PgrError(camera_.Connect(&guid), "Failed to connect to camera");
     EnableMetadata(camera_);
     // This is a total hack, it exists because one of my camera doesn't enable
     // auto white balance by default. You have to write to its presence register
@@ -47,48 +50,43 @@ bool Flea3Camera::Connect() {
 
 void Flea3Camera::SetConfiguration() {
   FC2Config config;
-  PGERROR(camera_.GetConfiguration(&config), "Failed to get configuration");
+  PgrError(camera_.GetConfiguration(&config), "Failed to get configuration");
   // Set the grab timeout to 1 seconds
   config.grabTimeout = 1000;
+  // Try 2 times before declaring failure
+  config.registerTimeoutRetries = 2;
+  // Since everytime we configure the camera, we stop capture, so this is safe
+  config.highPerformanceRetrieveBuffer = true;
 
   // Set the camera configuration
-  PGERROR(camera_.SetConfiguration(&config), "Failed to set configuration");
+  PgrError(camera_.SetConfiguration(&config), "Failed to set configuration");
 }
 
 std::string Flea3Camera::AvailableDevice() {
   unsigned num_devices = 0;
-  PGERROR(bus_manager_.GetNumOfCameras(&num_devices),
-          "Failed to get number for cameras");
+  PgrError(bus_manager_.GetNumOfCameras(&num_devices),
+           "Failed to get number for cameras");
 
   std::string devices = std::to_string(num_devices) + " available device(s): ";
   for (unsigned i = 0; i < num_devices; ++i) {
     unsigned serial_id;
-    PGERROR(bus_manager_.GetCameraSerialNumberFromIndex(i, &serial_id),
-            "Failed to get camera serial number from index");
+    PgrError(bus_manager_.GetCameraSerialNumberFromIndex(i, &serial_id),
+             "Failed to get camera serial number from index");
     devices += std::to_string(serial_id) + " ";
   }
   return devices;
 }
 
-void Flea3Camera::ConnectDevice(PGRGuid* guid) {
-  PGERROR(camera_.Connect(guid), "Failed to connect to camera");
-}
-
-void Flea3Camera::DisconnectDevice() {
-  if (camera_.IsConnected())
-    PGERROR(camera_.Disconnect(), "Failed to disconnect camera");
-}
-
 void Flea3Camera::StarCapture() {
   if (camera_.IsConnected() && !capturing_) {
-    PGERROR(camera_.StartCapture(), "Failed to start capture");
+    PgrError(camera_.StartCapture(), "Failed to start capture");
     capturing_ = true;
   }
 }
 
 void Flea3Camera::StopCapture() {
   if (camera_.IsConnected() && capturing_) {
-    PGERROR(camera_.StopCapture(), "Failed to stop capture");
+    PgrError(camera_.StopCapture(), "Failed to stop capture");
     capturing_ = false;
   }
 }
@@ -138,19 +136,21 @@ void Flea3Camera::SetVideoModeAndFrameRateAndFormat7(int& video_mode,
     // If the desired video mode is not supported, we fall back to the current
     // video mode, we dont simply return here because at the begining, dynamic
     // reconfigure has no idea what's the available video mode, or if the video
-    // mode is format 7, what's the available format mode is
+    // mode is format 7
     video_mode_pg = curr_video_mode_frame_rate_pg.first;
   }
 
   // Actual configuration
   if (video_mode_pg == VIDEOMODE_FORMAT7) {
-    // Check if the request video mode is supported
+    // Check if the request format7 mode is supported
     auto fmt7_mode_pg = static_cast<Mode>(format7_mode);
     const auto fmt7_info = GetFormat7Info(camera_, fmt7_mode_pg);
 
     if (!fmt7_info.second) {
-      ROS_WARN("The requested format 7 mode [%d] is not valid.", fmt7_mode_pg);
-      fmt7_mode_pg = GetFirstFormat7Mode(camera_);
+      ROS_WARN("The requested format 7 mode [%d] is not supported.",
+               fmt7_mode_pg);
+      // MODE_0 should always be supported
+      fmt7_mode_pg = MODE_0;
       ROS_WARN("Fall back to format 7 mode [%d]", fmt7_mode_pg);
     }
 
@@ -174,18 +174,19 @@ void Flea3Camera::SetFormat7(const Mode& mode, double& frame_rate,
   pixel_format = (pixel_format == 0) ? 22 : pixel_format;
   fmt7_settings.pixelFormat = static_cast<PixelFormat>(1 << pixel_format);
   // Just use max for now
+  // TODO: should be able to adjust this
   fmt7_settings.width = fmt7_info.first.maxWidth;
   fmt7_settings.height = fmt7_info.first.maxHeight;
   // Validate the settings to make sure that they are valid
   const auto fmt7_packet_info = IsFormat7SettingsValid(camera_, fmt7_settings);
   if (fmt7_packet_info.second) {
-    PGERROR(
+    PgrWarn(
         camera_.SetFormat7Configuration(
             &fmt7_settings, fmt7_packet_info.first.recommendedBytesPerPacket),
         "Failed to set format7 configuration");
     SetProperty(camera_, FRAME_RATE, frame_rate);
   } else {
-    ROS_WARN("Format 7 Settings are not valid");
+    ROS_WARN("Format 7 Setting is not valid");
   }
 }
 
@@ -203,8 +204,8 @@ void Flea3Camera::SetVideoModeAndFrameRate(const VideoMode& video_mode,
 
 void Flea3Camera::SetVideoModeAndFrameRate(const VideoMode& video_mode,
                                            const FrameRate& frame_rate) {
-  PGERROR(camera_.SetVideoModeAndFrameRate(video_mode, frame_rate),
-          "Failed to set video mode and frame rate");
+  PgrError(camera_.SetVideoModeAndFrameRate(video_mode, frame_rate),
+           "Failed to set video mode and frame rate");
 }
 
 bool Flea3Camera::GrabImage(sensor_msgs::Image& image_msg,
@@ -214,14 +215,6 @@ bool Flea3Camera::GrabImage(sensor_msgs::Image& image_msg,
   Image image;
   const auto error = camera_.RetrieveBuffer(&image);
   if (error != PGRERROR_OK) return false;
-
-  // TODO: Change this to use_ros_time?
-  if (false) {
-    auto time = image.GetTimeStamp();
-    image_msg.header.stamp.sec = time.seconds;
-    image_msg.header.stamp.nsec = 1000 * time.microSeconds;
-    cinfo_msg.header.stamp = image_msg.header.stamp;
-  }
 
   // Set image encodings
   const auto bayer_format = image.GetBayerTileFormat();
@@ -322,8 +315,8 @@ void Flea3Camera::SetRawBayerOutput(bool& raw_bayer_output) {
 // TODO: Add support for GPIO external trigger
 void Flea3Camera::SetTriggerMode(bool& enable_trigger) {
   TriggerModeInfo trigger_mode_info;
-  PGERROR(camera_.GetTriggerModeInfo(&trigger_mode_info),
-          "Failed to get trigger mode info");
+  PgrError(camera_.GetTriggerModeInfo(&trigger_mode_info),
+           "Failed to get trigger mode info");
   if (!trigger_mode_info.present) {
     // Camera doesn't support external triggering, so set enable_trigger to
     // false
@@ -333,13 +326,13 @@ void Flea3Camera::SetTriggerMode(bool& enable_trigger) {
   }
 
   TriggerMode trigger_mode;
-  PGERROR(camera_.GetTriggerMode(&trigger_mode), "Failed to get trigger mode");
+  PgrError(camera_.GetTriggerMode(&trigger_mode), "Failed to get trigger mode");
   trigger_mode.onOff = enable_trigger;
   trigger_mode.mode = 0;
   trigger_mode.parameter = 0;
   // Source 7 means software trigger
   trigger_mode.source = 7;
-  PGERROR(camera_.SetTriggerMode(&trigger_mode), "Failed to set trigger mode");
+  PgrError(camera_.SetTriggerMode(&trigger_mode), "Failed to set trigger mode");
 }
 
 bool Flea3Camera::PollForTriggerReady() {

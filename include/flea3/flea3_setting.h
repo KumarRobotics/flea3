@@ -3,14 +3,12 @@
 
 #include <flycapture/FlyCapture2.h>
 
-#define PGERROR(err, msg) flea3::HandleError(err, msg, __func__)
-
 namespace flea3 {
 
 using namespace FlyCapture2;
 
-void HandleError(const Error& error, const std::string& message = "",
-                 const std::string& func_name = "");
+void PgrError(const Error& error, const std::string& message = "");
+bool PgrWarn(const Error& error, const std::string& message = "");
 
 void PrintPropertyInfo(const PropertyInfo& prop_info,
                        const std::string& prop_name);
@@ -22,7 +20,6 @@ std::string PixelFormatToEncoding(unsigned bits_per_pixel);
 PropertyInfo GetPropertyInfo(Camera& camera, const PropertyType& prop_type);
 Property GetProperty(Camera& camera, const PropertyType& prop_type);
 std::pair<Format7Info, bool> GetFormat7Info(Camera& camera, const Mode& mode);
-Mode GetFirstFormat7Mode(Camera& camera);
 CameraInfo GetCameraInfo(Camera& camera);
 float GetCameraFrameRate(Camera& camera);
 float GetCameraTemperature(Camera& camera);

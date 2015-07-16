@@ -32,15 +32,25 @@ std::string PixelFormatToEncoding(unsigned bits_per_pixel) {
   return MONO8;
 }
 
-void HandleError(const Error& error, const std::string& message,
-                 const std::string& func_name) {
+void PgrError(const Error& error, const std::string& message) {
   if (error == PGRERROR_TIMEOUT) {
     throw std::runtime_error("Failed to retrieve buffer within timeout");
   } else if (error != PGRERROR_OK) {
-    const std::string error_type(std::to_string(error.GetType()));
-    const std::string error_desc(error.GetDescription());
-    throw std::runtime_error(message + " | " + error_type + " " + error_desc +
-                             " | " + func_name);
+    throw std::runtime_error(message + " | " + std::to_string(error.GetType()) +
+                             " " + error.GetDescription());
+  }
+}
+
+bool PgrWarn(const Error& error, const std::string& message) {
+  if (error == PGRERROR_TIMEOUT) {
+    std::cout << "Failed to retrieve buffer within timeout" << std::endl;
+    return false;
+  } else if (error != PGRERROR_OK) {
+    std::cout << message << " | " << std::to_string(error.GetType()) << " "
+              << error.GetDescription() << std::endl;
+    return false;
+  } else {
+    return true;
   }
 }
 
@@ -89,48 +99,36 @@ void printProperty(const Property& prop, const std::string& prop_name) {
 
 unsigned ReadRegister(Camera& camera, unsigned address) {
   unsigned reg_val;
-  PGERROR(camera.ReadRegister(address, &reg_val), "Failed to read register");
+  PgrError(camera.ReadRegister(address, &reg_val), "Failed to read register");
   return reg_val;
 }
 
 PropertyInfo GetPropertyInfo(Camera& camera, const PropertyType& prop_type) {
   PropertyInfo prop_info;
   prop_info.type = prop_type;
-  PGERROR(camera.GetPropertyInfo(&prop_info), "Failed to get property info");
+  PgrError(camera.GetPropertyInfo(&prop_info), "Failed to get property info");
   return prop_info;
 }
 
 Property GetProperty(Camera& camera, const PropertyType& prop_type) {
   Property prop;
   prop.type = prop_type;
-  PGERROR(camera.GetProperty(&prop), "Failed to get property");
+  PgrError(camera.GetProperty(&prop), "Failed to get property");
   return prop;
 }
 
 std::pair<Format7Info, bool> GetFormat7Info(Camera& camera, const Mode& mode) {
   Format7Info fmt7_info;
-  bool supported;
+  bool supported = false;
   fmt7_info.mode = mode;
-  PGERROR(camera.GetFormat7Info(&fmt7_info, &supported),
+  PgrWarn(camera.GetFormat7Info(&fmt7_info, &supported),
           "Failed to get format 7 info");
   return {fmt7_info, supported};
 }
 
-Mode GetFirstFormat7Mode(Camera& camera) {
-  for (int i = 0; i <= 8; ++i) {
-    const auto mode = static_cast<Mode>(i);
-    const auto fmt7_info = GetFormat7Info(camera, mode);
-    if (fmt7_info.second) {
-      return mode;
-    }
-  }
-  // This should never happen
-  return {};
-}
-
 CameraInfo GetCameraInfo(Camera& camera) {
   CameraInfo camera_info;
-  PGERROR(camera.GetCameraInfo(&camera_info), "Failed to get camera info");
+  PgrError(camera.GetCameraInfo(&camera_info), "Failed to get camera info");
   return camera_info;
 }
 
@@ -156,8 +154,8 @@ FrameRate GetMaxFrameRate(Camera& camera, const VideoMode& video_mode) {
 std::pair<VideoMode, FrameRate> GetVideoModeAndFrameRate(Camera& camera) {
   VideoMode video_mode;
   FrameRate frame_rate;
-  PGERROR(camera.GetVideoModeAndFrameRate(&video_mode, &frame_rate),
-          "Failed to get VideoMode and FrameRate");
+  PgrError(camera.GetVideoModeAndFrameRate(&video_mode, &frame_rate),
+           "Failed to get VideoMode and FrameRate");
   return {video_mode, frame_rate};
 }
 
@@ -181,7 +179,7 @@ void SetProperty(Camera& camera, const PropertyType& prop_type, bool& auto_on,
     value = std::max<double>(std::min<double>(value, prop_info.absMax),
                              prop_info.absMin);
     prop.absValue = value;
-    PGERROR(camera.SetProperty(&prop), "Failed to set property");
+    PgrError(camera.SetProperty(&prop), "Failed to set property");
 
     // Update value
     if (auto_on) value = GetProperty(camera, prop_type).absValue;
@@ -199,12 +197,12 @@ void SetProperty(Camera& camera, const PropertyType& prop_type, double& value) {
     value = std::max<double>(std::min<double>(value, prop_info.absMax),
                              prop_info.absMin);
     prop.absValue = value;
-    PGERROR(camera.SetProperty(&prop), "Failed to set property");
+    PgrError(camera.SetProperty(&prop), "Failed to set property");
   }
 }
 
 void WriteRegister(Camera& camera, unsigned address, unsigned value) {
-  PGERROR(camera.WriteRegister(address, value), "Failed to write register");
+  PgrWarn(camera.WriteRegister(address, value), "Failed to write register");
 }
 
 void EnableMetadata(Camera& camera) {
@@ -216,7 +214,7 @@ void EnableMetadata(Camera& camera) {
   info.brightness.onOff = true;
   info.whiteBalance.onOff = true;
   info.frameCounter.onOff = true;
-  PGERROR(camera.SetEmbeddedImageInfo(&info), "Failed to enable metadata");
+  PgrWarn(camera.SetEmbeddedImageInfo(&info), "Failed to enable metadata");
 }
 
 bool IsAutoWhiteBalanceSupported(Camera& camera) {
@@ -231,17 +229,16 @@ bool IsVideoModeSupported(Camera& camera, const VideoMode& video_mode) {
 bool IsVideoModeAndFrameRateSupported(Camera& camera,
                                       const VideoMode& video_mode,
                                       const FrameRate& frame_rate) {
-  bool supported;
-  PGERROR(
+  bool supported = false;
+  PgrError(
       camera.GetVideoModeAndFrameRateInfo(video_mode, frame_rate, &supported),
       "Failed to get video mode and frame rate info");
   return supported;
 }
 
 bool IsFormat7Supported(Camera& camera) {
-  // TODO: this is a hack, there are more than 8 modes
-  const int num_modes{8};
-  for (int i = 0; i <= num_modes; ++i) {
+  const int num_modes{NUM_MODES};
+  for (int i = 0; i < num_modes; ++i) {
     const auto mode = static_cast<Mode>(i);
     if (GetFormat7Info(camera, mode).second) {
       // Supported
@@ -254,8 +251,8 @@ bool IsFormat7Supported(Camera& camera) {
 std::pair<Format7PacketInfo, bool> IsFormat7SettingsValid(
     Camera& camera, const Format7ImageSettings& fmt7_settings) {
   Format7PacketInfo fmt7_packet_info;
-  bool valid;
-  PGERROR(
+  bool valid = false;
+  PgrWarn(
       camera.ValidateFormat7Settings(&fmt7_settings, &valid, &fmt7_packet_info),
       "Failed to validate format7 settings");
   return {fmt7_packet_info, valid};

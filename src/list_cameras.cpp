@@ -4,17 +4,18 @@
 #include "flea3/flea3_setting.h"
 
 using namespace FlyCapture2;
+using namespace flea3;
 
 std::string InterfaceTypeToString(const InterfaceType& interface_type) {
   switch (interface_type) {
     case INTERFACE_IEEE1394:
-      return "ieee1394";
+      return "IEEE1394";
     case INTERFACE_USB2:
-      return "usb2";
+      return "USB2.0";
     case INTERFACE_USB3:
-      return "usb3";
+      return "USB3.0";
     case INTERFACE_GIGE:
-      return "gige";
+      return "GigE";
     case INTERFACE_UNKNOWN:
     default:
       return "unknown";
@@ -38,20 +39,20 @@ int main(int argc, char** argv) {
 
   try {
     unsigned num_devices = 0;
-    PGERROR(bus_manager.GetNumOfCameras(&num_devices),
-            "Failed get number of cameras");
+    PgrError(bus_manager.GetNumOfCameras(&num_devices),
+             "Failed get number of cameras");
     if (num_devices) {
       std::cout << "Number of cameras found: " << num_devices << std::endl;
       for (unsigned i = 0; i < num_devices; ++i) {
         PGRGuid guid;
-        PGERROR(bus_manager.GetCameraFromIndex(i, &guid),
-                "Failed to get camera from index" + std::to_string(i));
+        PgrError(bus_manager.GetCameraFromIndex(i, &guid),
+                 "Failed to get camera from index" + std::to_string(i));
 
         Camera camera;
-        PGERROR(camera.Connect(&guid), "Failed to connect to camera");
+        PgrError(camera.Connect(&guid), "Failed to connect to camera");
 
         CameraInfo cinfo;
-        PGERROR(camera.GetCameraInfo(&cinfo), "Failed to get camera info");
+        PgrError(camera.GetCameraInfo(&cinfo), "Failed to get camera info");
 
         std::cout << "[" << i << "]";
         printCameraInfo(cinfo);
