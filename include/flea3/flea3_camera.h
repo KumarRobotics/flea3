@@ -31,9 +31,15 @@ class Flea3Camera {
 
  private:
   std::string AvailableDevice();
-
+  // Start up settings
   void EnableAutoWhiteBalance();
   void SetConfiguration();
+
+  // Video Mode settings
+  void SetFormat7VideoMode(int& format7_mode, int& pixel_format,
+                           double& frame_rate, int& width, int& height);
+  void SetStandardVideoMode(int& video_mode, double& fps);
+
   void SetWhiteBalanceRedBlue(bool& auto_white_balance, int& red, int& blue);
   void SetVideoModeAndFrameRateAndFormat7(int& video_mode, double& frame_rate,
                                           int& format7_mode, int& pixel_format);
@@ -53,6 +59,8 @@ class Flea3Camera {
   void SetTriggerMode(bool& enable_trigger);
   bool PollForTriggerReady();
   bool FireSoftwareTrigger();
+  void SetRoi(const Format7Info& format7_info,
+              Format7ImageSettings& format7_settings, int& width, int& height);
 
   BusManager bus_manager_;
   Camera camera_;

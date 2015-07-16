@@ -249,13 +249,21 @@ bool IsFormat7Supported(Camera& camera) {
 }
 
 std::pair<Format7PacketInfo, bool> IsFormat7SettingsValid(
-    Camera& camera, const Format7ImageSettings& fmt7_settings) {
+    Camera& camera, Format7ImageSettings& fmt7_settings) {
   Format7PacketInfo fmt7_packet_info;
   bool valid = false;
   PgrWarn(
       camera.ValidateFormat7Settings(&fmt7_settings, &valid, &fmt7_packet_info),
       "Failed to validate format7 settings");
   return {fmt7_packet_info, valid};
+}
+
+int CenterRoi(int& size, int max_size, int step) {
+  if (size == 0 || size > max_size) size = max_size;
+  // size should be a multiple of step
+  size = size / step * step;
+  // Return offset for centering roi
+  return (max_size - size) / 2;
 }
 
 }  // namespace flea3

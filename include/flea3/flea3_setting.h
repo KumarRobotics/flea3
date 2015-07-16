@@ -38,11 +38,13 @@ void EnableMetadata(Camera& camera);
 bool IsAutoWhiteBalanceSupported(Camera& camera);
 bool IsFormat7Supported(Camera& camera);
 std::pair<Format7PacketInfo, bool> IsFormat7SettingsValid(
-    Camera& camera, const Format7ImageSettings& fmt7_settings);
+    Camera& camera, Format7ImageSettings& fmt7_settings);
 bool IsVideoModeSupported(Camera& camera, const VideoMode& video_mode);
 bool IsVideoModeAndFrameRateSupported(Camera& camera,
                                       const VideoMode& video_mode,
                                       const FrameRate& frame_rate);
+
+int CenterRoi(int& size, int max_size, int step);
 
 }  // namespace flea3
 
