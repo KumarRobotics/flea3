@@ -49,14 +49,17 @@ class Flea3Camera {
   void SetFrameRate(double& frame_rate);
 
   // White Balance
-  void SetWhiteBalanceRedBlue(bool& auto_white_balance, int& red, int& blue);
+  void SetWhiteBalanceRedBlue(bool& white_balance, bool& auto_white_balance,
+                              int& red, int& blue);
+
+  // Raw Bayer
+  void SetRawBayerOutput(bool& raw_bayer_output);
 
   void SetExposure(bool& auto_exposure, double& exposure);
   void SetShutter(bool& auto_shutter, double& shutter);
   void SetGain(bool& auto_gain, double& gain);
   void SetBrightness(double& brightness);
   void SetGamma(double& gamma);
-  void SetRawBayerOutput(bool& raw_bayer_output);
 
   // Trigger
   void SetTriggerMode(bool& enable_trigger);
@@ -69,7 +72,6 @@ class Flea3Camera {
   std::string serial_;
   Config config_;
   bool capturing_{false};
-  std::vector<double> frame_rates_;
 };
 
 }  // namespace flea3

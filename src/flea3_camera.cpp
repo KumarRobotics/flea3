@@ -8,7 +8,7 @@ namespace flea3 {
 using namespace FlyCapture2;
 
 Flea3Camera::Flea3Camera(const std::string& serial) : serial_(serial) {
-  frame_rates_ = {1.875, 3.75, 7.5, 15, 30, 60, 120, 240};
+  //  frame_rates_ = {1.875, 3.75, 7.5, 15, 30, 60, 120, 240};
   // Wait for camera to power up
   int num_tries{3};
   while (num_tries > 0) {
@@ -107,8 +107,8 @@ void Flea3Camera::Configure(Config& config) {
   SetRawBayerOutput(config.raw_bayer_output);
 
   // White Balance
-  SetWhiteBalanceRedBlue(config.auto_white_balance, config.wb_red,
-                         config.wb_blue);
+  SetWhiteBalanceRedBlue(config.white_balance, config.auto_white_balance,
+                         config.wb_red, config.wb_blue);
 
   // Trigger
   SetTriggerMode(config.enable_trigger);
@@ -213,7 +213,8 @@ void Flea3Camera::SetStandardVideoMode(int& video_mode) {
 }
 
 void Flea3Camera::SetFrameRate(double& frame_rate) {
-  // TODO: does not support auto frame rate now
+  // Since frame rate is always on and auto mode is not supported, we just use
+  // SetProperty
   SetProperty(camera_, FRAME_RATE, frame_rate);
 }
 
@@ -245,17 +246,19 @@ bool Flea3Camera::GrabImage(sensor_msgs::Image& image_msg,
                                 image.GetData());
 }
 
-void Flea3Camera::SetWhiteBalanceRedBlue(bool& auto_white_balance, int& red,
+void Flea3Camera::SetWhiteBalanceRedBlue(bool& white_balance,
+                                         bool& auto_white_balance, int& red,
                                          int& blue) {
   const int default_blue = 800;
   const int default_red = 550;
   if (!camera_info_.isColorCamera) {
-    // Not even a color camera, what are you thinking?
+    // Not even a color camera
     ROS_ERROR("Camera %s is not a color camera, white balance not supported",
               serial().c_str());
     auto_white_balance = false;
-    red = default_red;
-    blue = default_blue;
+    white_balance = false;
+    red = 512;
+    blue = 512;
     return;
   }
 
