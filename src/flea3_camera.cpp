@@ -103,20 +103,23 @@ void Flea3Camera::Configure(Config& config) {
   // Frame Rate
   SetFrameRate(config.fps);
 
-  // Exposure
-  SetExposure(config.auto_exposure, config.exposure_value);
-  SetShutter(config.auto_shutter, config.shutter);
-  SetGain(config.auto_gain, config.gain);
+  // Raw Bayer
+  SetRawBayerOutput(config.raw_bayer_output);
 
   // White Balance
   SetWhiteBalanceRedBlue(config.auto_white_balance, config.wb_red,
                          config.wb_blue);
 
+  // Trigger
   SetTriggerMode(config.enable_trigger);
+
+  // Exposure
+  SetExposure(config.auto_exposure, config.exposure_value);
+  SetShutter(config.auto_shutter, config.shutter);
+  SetGain(config.auto_gain, config.gain);
 
   SetBrightness(config.brightness);
   SetGamma(config.gamma);
-  SetRawBayerOutput(config.raw_bayer_output);
 
   // Save this config
   config_ = config;
@@ -310,7 +313,8 @@ void Flea3Camera::SetGamma(double& gamma) {
 void Flea3Camera::SetRawBayerOutput(bool& raw_bayer_output) {
   // Because this only works in standard video mode, we only enable this if
   // video mode is not format 7
-  if (config_.video_mode == Flea3Dyn_format7) {
+  const auto video_mode_frame_rate_pg = GetVideoModeAndFrameRate(camera_);
+  if (video_mode_frame_rate_pg.first == VIDEOMODE_FORMAT7) {
     raw_bayer_output = false;
     return;
   }
