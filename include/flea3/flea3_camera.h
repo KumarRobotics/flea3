@@ -55,7 +55,7 @@ class Flea3Camera {
   // Raw Bayer
   void SetRawBayerOutput(bool& raw_bayer_output);
 
-  void SetExposure(bool& auto_exposure, double& exposure);
+  void SetExposure(bool& exposure, bool& auto_exposure, double& exposure_value);
   void SetShutter(bool& auto_shutter, double& shutter);
   void SetGain(bool& auto_gain, double& gain);
   void SetBrightness(double& brightness);

@@ -26,6 +26,8 @@ float GetCameraTemperature(Camera& camera);
 FrameRate GetMaxFrameRate(Camera& camera, const VideoMode& video_mode);
 std::pair<VideoMode, FrameRate> GetVideoModeAndFrameRate(Camera& camera);
 
+void SetProperty(Camera& camera, const PropertyType& prop_type, bool& on,
+                 bool& auto_on, double& value);
 void SetProperty(Camera& camera, const PropertyType& prop_type, bool& auto_on,
                  double& value);
 void SetProperty(Camera& camera, const PropertyType& prop_type, double& value);

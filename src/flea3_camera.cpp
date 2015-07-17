@@ -53,7 +53,7 @@ void Flea3Camera::SetConfiguration() {
   FC2Config config;
   PgrError(camera_.GetConfiguration(&config), "Failed to get configuration");
   // Set the grab timeout to 1 seconds
-  //  config.grabTimeout = 1000;
+  config.grabTimeout = 1000;
   // Try 2 times before declaring failure
   config.registerTimeoutRetries = 2;
   // Cannot do this here, will block all the following settings on format7
@@ -110,16 +110,16 @@ void Flea3Camera::Configure(Config& config) {
   SetWhiteBalanceRedBlue(config.white_balance, config.auto_white_balance,
                          config.wb_red, config.wb_blue);
 
-  // Trigger
-  SetTriggerMode(config.enable_trigger);
-
   // Exposure
-  SetExposure(config.auto_exposure, config.exposure_value);
+  SetExposure(config.exposure, config.auto_exposure, config.exposure_value);
   SetShutter(config.auto_shutter, config.shutter);
   SetGain(config.auto_gain, config.gain);
 
   SetBrightness(config.brightness);
   SetGamma(config.gamma);
+
+  // Trigger
+  SetTriggerMode(config.enable_trigger);
 
   // Save this config
   config_ = config;
@@ -293,8 +293,9 @@ void Flea3Camera::EnableAutoWhiteBalance() {
   WriteRegister(camera_, 0x80C, 1 << 31);
 }
 
-void Flea3Camera::SetExposure(bool& auto_exposure, double& exposure) {
-  SetProperty(camera_, AUTO_EXPOSURE, auto_exposure, exposure);
+void Flea3Camera::SetExposure(bool& exposure, bool& auto_exposure,
+                              double& exposure_value) {
+  SetProperty(camera_, AUTO_EXPOSURE, exposure, auto_exposure, exposure_value);
 }
 
 void Flea3Camera::SetShutter(bool& auto_shutter, double& shutter) {
@@ -341,8 +342,8 @@ void Flea3Camera::SetRoi(const Format7Info& format7_info,
 // TODO: Add support for GPIO external trigger
 void Flea3Camera::SetTriggerMode(bool& enable_trigger) {
   TriggerModeInfo trigger_mode_info;
-  PgrError(camera_.GetTriggerModeInfo(&trigger_mode_info),
-           "Failed to get trigger mode info");
+  PgrWarn(camera_.GetTriggerModeInfo(&trigger_mode_info),
+          "Failed to get trigger mode info");
   if (!trigger_mode_info.present) {
     // Camera doesn't support external triggering, so set enable_trigger to
     // false
@@ -352,13 +353,15 @@ void Flea3Camera::SetTriggerMode(bool& enable_trigger) {
   }
 
   TriggerMode trigger_mode;
-  PgrError(camera_.GetTriggerMode(&trigger_mode), "Failed to get trigger mode");
+  PgrWarn(camera_.GetTriggerMode(&trigger_mode), "Failed to get trigger mode");
   trigger_mode.onOff = enable_trigger;
   trigger_mode.mode = 0;
   trigger_mode.parameter = 0;
   // Source 7 means software trigger
   trigger_mode.source = 7;
-  PgrError(camera_.SetTriggerMode(&trigger_mode), "Failed to set trigger mode");
+  PgrWarn(camera_.SetTriggerMode(&trigger_mode), "Failed to set trigger mode");
+  PgrWarn(camera_.GetTriggerMode(&trigger_mode), "Failed to get trigger mode");
+  enable_trigger = trigger_mode.onOff;
 }
 
 bool Flea3Camera::PollForTriggerReady() {
