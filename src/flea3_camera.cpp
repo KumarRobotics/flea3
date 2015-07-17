@@ -249,8 +249,6 @@ bool Flea3Camera::GrabImage(sensor_msgs::Image& image_msg,
 void Flea3Camera::SetWhiteBalanceRedBlue(bool& white_balance,
                                          bool& auto_white_balance, int& red,
                                          int& blue) {
-  const int default_blue = 800;
-  const int default_red = 550;
   if (!camera_info_.isColorCamera) {
     // Not even a color camera
     ROS_ERROR("Camera %s is not a color camera, white balance not supported",
@@ -262,29 +260,33 @@ void Flea3Camera::SetWhiteBalanceRedBlue(bool& white_balance,
     return;
   }
 
-  const unsigned white_balance_addr = 0x80C;
-  unsigned value = 1 << 25;  // Enable and turn on
-
-  if (auto_white_balance) {
-    if (!IsAutoWhiteBalanceSupported(camera_)) {
-      // You want auto white balance, but it is not supported
-      ROS_WARN("Auto white balance not supported");
-      auto_white_balance = false;
-      // Set to some reasonable value
-      blue = default_blue;
-      red = default_red;
-      return;
-    }
-    value |= 1 << 24;  // Auto
-    if (config_.auto_white_balance) {
-      const auto prop = GetProperty(camera_, WHITE_BALANCE);
-      red = prop.valueA;
-      blue = prop.valueB;
-    }
-  } else {
-    value |= blue << 12 | red;
+  // Check if white balance is supported
+  const auto prop_info = GetPropertyInfo(camera_, WHITE_BALANCE);
+  if (!prop_info.present) {
+    white_balance = false;
+    auto_white_balance = false;
+    blue = 0;
+    red = 0;
+    return;
   }
-  WriteRegister(camera_, white_balance_addr, value);
+
+  // Set white balance
+  Error error;
+  Property prop;
+  prop.type = WHITE_BALANCE;
+  prop.onOff = white_balance;
+  prop.autoManualMode = auto_white_balance;
+  prop.absControl = false;
+  prop.valueA = red;
+  prop.valueB = blue;
+  error = camera_.SetProperty(&prop);
+
+  // Get white balance
+  camera_.GetProperty(&prop);
+  white_balance = prop.onOff;
+  auto_white_balance = prop.autoManualMode;
+  red = prop.valueA;
+  blue = prop.valueB;
 }
 
 void Flea3Camera::EnableAutoWhiteBalance() {
