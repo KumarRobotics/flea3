@@ -138,17 +138,15 @@ float GetCameraFrameRate(Camera& camera) {
 }
 
 FrameRate GetMaxFrameRate(Camera& camera, const VideoMode& video_mode) {
-  FrameRate max_frame_rate;
   // This magic number 2 skips VideoMode format 7
   for (int i = NUM_FRAMERATES - 2; i >= 0; --i) {
     const auto frame_rate = static_cast<FrameRate>(i);
     if (IsVideoModeAndFrameRateSupported(camera, video_mode, frame_rate)) {
-      max_frame_rate = frame_rate;
-      // We return here because there must be one frame rate supported
-      break;
+      // Whatever we get here should be the supported max frame rate
+      return frame_rate;
     }
   }
-  return max_frame_rate;
+  return FRAMERATE_1_875;
 }
 
 std::pair<VideoMode, FrameRate> GetVideoModeAndFrameRate(Camera& camera) {
@@ -230,7 +228,7 @@ bool IsVideoModeAndFrameRateSupported(Camera& camera,
                                       const VideoMode& video_mode,
                                       const FrameRate& frame_rate) {
   bool supported = false;
-  PgrError(
+  PgrWarn(
       camera.GetVideoModeAndFrameRateInfo(video_mode, frame_rate, &supported),
       "Failed to get video mode and frame rate info");
   return supported;

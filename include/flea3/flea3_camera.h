@@ -31,23 +31,25 @@ class Flea3Camera {
 
  private:
   std::string AvailableDevice();
-  // Start up settings
+
+  // Start up
   void EnableAutoWhiteBalance();
   void SetConfiguration();
 
-  // Video Mode settings
-  void SetFormat7VideoMode(int& format7_mode, int& pixel_format,
-                           double& frame_rate, int& width, int& height);
-  void SetStandardVideoMode(int& video_mode, double& fps);
+  // Video Mode
+  void SetVideoMode(int& video_mode, int& format7_mode, int& pixel_format,
+                    int& width, int& height);
+  void SetFormat7VideoMode(int& format7_mode, int& pixel_format, int& width,
+                           int& height);
+  void SetStandardVideoMode(int& video_mode);
+  void SetRoi(const Format7Info& format7_info,
+              Format7ImageSettings& format7_settings, int& width, int& height);
 
+  // Frame Rate
+  void SetFrameRate(double& frame_rate);
+
+  // White Balance
   void SetWhiteBalanceRedBlue(bool& auto_white_balance, int& red, int& blue);
-  void SetVideoModeAndFrameRateAndFormat7(int& video_mode, double& frame_rate,
-                                          int& format7_mode, int& pixel_format);
-  void SetVideoModeAndFrameRate(const VideoMode& video_mode,
-                                const FrameRate& frame_rate);
-  void SetVideoModeAndFrameRate(const VideoMode& video_mode,
-                                double& frame_rate);
-  void SetFormat7(const Mode& mode, double& frame_rate, int& pixel_format);
 
   void SetExposure(bool& auto_exposure, double& exposure);
   void SetShutter(bool& auto_shutter, double& shutter);
@@ -56,11 +58,10 @@ class Flea3Camera {
   void SetGamma(double& gamma);
   void SetRawBayerOutput(bool& raw_bayer_output);
 
+  // Trigger
   void SetTriggerMode(bool& enable_trigger);
   bool PollForTriggerReady();
   bool FireSoftwareTrigger();
-  void SetRoi(const Format7Info& format7_info,
-              Format7ImageSettings& format7_settings, int& width, int& height);
 
   BusManager bus_manager_;
   Camera camera_;
