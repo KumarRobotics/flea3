@@ -1,6 +1,7 @@
 #include "flea3/flea3_setting.h"
 #include <sensor_msgs/image_encodings.h>
 #include <iostream>
+#include <ros/ros.h>
 
 namespace flea3 {
 
@@ -42,19 +43,15 @@ void PgrError(const Error& error, const std::string& message) {
 }
 
 bool PgrWarn(const Error& error, const std::string& message) {
-  if (error == PGRERROR_TIMEOUT) {
-    std::cout << "Failed to retrieve buffer within timeout" << std::endl;
-    return false;
-  } else if (error != PGRERROR_OK) {
-    std::cout << message << " | " << std::to_string(error.GetType()) << " "
-              << error.GetDescription() << std::endl;
+  if (error != PGRERROR_OK) {
+    ROS_WARN("%s, %s", error.GetDescription(), message.c_str());
     return false;
   } else {
     return true;
   }
 }
 
-void printPropertyInfo(const PropertyInfo& prop_info,
+void PrintPropertyInfo(const PropertyInfo& prop_info,
                        const std::string& prop_name) {
   std::cout << "* Property Info: " << prop_name;
 
@@ -71,7 +68,7 @@ void printPropertyInfo(const PropertyInfo& prop_info,
 
   if (!prop_info.readOutSupported) return;
 
-  if (!prop_info.absValSupported) {
+  if (prop_info.absValSupported) {
     std::cout << ", [abs]"
               << " min: " << prop_info.absMin << ", max: " << prop_info.absMax;
   } else {
@@ -81,7 +78,7 @@ void printPropertyInfo(const PropertyInfo& prop_info,
   std::cout << std::endl;
 }
 
-void printProperty(const Property& prop, const std::string& prop_name) {
+void PrintProperty(const Property& prop, const std::string& prop_name) {
   std::cout << "* Property: " << prop_name;
 
   if (!prop.present) {
@@ -195,7 +192,13 @@ void SetProperty(Camera& camera, const PropertyType& prop_type, double& value) {
     value = std::max<double>(std::min<double>(value, prop_info.absMax),
                              prop_info.absMin);
     prop.absValue = value;
-    PgrError(camera.SetProperty(&prop), "Failed to set property");
+    PgrWarn(camera.SetProperty(&prop), "Failed to set property");
+
+    // Validate and update setting
+    PgrWarn(camera.GetProperty(&prop), "Failed to get property");
+    value = prop.absValue;
+  } else {
+    ROS_WARN("Property not present");
   }
 }
 

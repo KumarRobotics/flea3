@@ -93,18 +93,22 @@ void Flea3Camera::StopCapture() {
 }
 
 void Flea3Camera::Configure(Config& config) {
+  // Video Mode
   SetVideoMode(config.video_mode, config.format7_mode, config.pixel_format,
                config.width, config.height);
 
   // Update CameraInfo here after video mode is changed
   camera_info_ = GetCameraInfo(camera_);
 
-  // Do other settings in the order of, exposure control, White balance, Trigger
-  // Mode and others
+  // Frame Rate
+  SetFrameRate(config.fps);
+
+  // Exposure
   SetExposure(config.auto_exposure, config.exposure_value);
   SetShutter(config.auto_shutter, config.shutter);
   SetGain(config.auto_gain, config.gain);
 
+  // White Balance
   SetWhiteBalanceRedBlue(config.auto_white_balance, config.wb_red,
                          config.wb_blue);
 
@@ -129,7 +133,6 @@ void Flea3Camera::SetVideoMode(int& video_mode, int& format7_mode,
   if (video_mode_pg == VIDEOMODE_FORMAT7) {
     is_video_mode_supported = IsFormat7Supported(camera_);
   } else {
-    // Test video mode with the lowest frame rate
     is_video_mode_supported = IsVideoModeSupported(camera_, video_mode_pg);
   }
 
@@ -145,23 +148,9 @@ void Flea3Camera::SetVideoMode(int& video_mode, int& format7_mode,
   // Actual configuration
   if (video_mode_pg == VIDEOMODE_FORMAT7) {
     SetFormat7VideoMode(format7_mode, pixel_format, width, height);
-    // TODO: set this only if the above setting is successful?
     video_mode = video_mode_pg;
   } else {
-    // TODO: replace this part with SetStandardVideoMode();
-    // Set standard video mode, changes video_mode and frame_rate
-    const auto max_frame_rate_pg = GetMaxFrameRate(camera_, video_mode_pg);
-    const auto error =
-        camera_.SetVideoModeAndFrameRate(video_mode_pg, max_frame_rate_pg);
-
-    if (error == PGRERROR_OK) {
-      // Only update config if succeeded
-      video_mode = video_mode_pg;
-    } else {
-      ROS_WARN("%s: Failed to set standard video mode [%d]", serial().c_str(),
-               video_mode_pg);
-    }
-
+    SetStandardVideoMode(video_mode);
     // These configs are not supported in standard video mode
     format7_mode = 0;
     pixel_format = 0;
@@ -210,10 +199,20 @@ void Flea3Camera::SetFormat7VideoMode(int& format7_mode, int& pixel_format,
 }
 
 void Flea3Camera::SetStandardVideoMode(int& video_mode) {
-  // Not implemented
+  auto video_mode_pg = static_cast<VideoMode>(video_mode);
+  const auto max_frame_rate_pg = GetMaxFrameRate(camera_, video_mode_pg);
+  PgrWarn(camera_.SetVideoModeAndFrameRate(video_mode_pg, max_frame_rate_pg));
+
+  // Update video mode
+  FrameRate frame_rate_pg;
+  PgrWarn(camera_.GetVideoModeAndFrameRate(&video_mode_pg, &frame_rate_pg));
+  video_mode = video_mode_pg;
 }
 
-void Flea3Camera::SetFrameRate(double& frame_rate) {}
+void Flea3Camera::SetFrameRate(double& frame_rate) {
+  // TODO: does not support auto frame rate now
+  SetProperty(camera_, FRAME_RATE, frame_rate);
+}
 
 bool Flea3Camera::GrabImage(sensor_msgs::Image& image_msg,
                             sensor_msgs::CameraInfo& cinfo_msg) {
