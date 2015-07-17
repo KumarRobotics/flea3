@@ -14,7 +14,8 @@ void PrintPropertyInfo(const PropertyInfo& prop_info,
                        const std::string& prop_name);
 void PrintProperty(const Property& prop, const std::string& prop_name);
 
-std::string BayerFormatToEncoding(const BayerTileFormat& bayer_format);
+std::string BayerFormatToEncoding(const BayerTileFormat& bayer_format,
+                                  unsigned bits_per_pixel);
 std::string PixelFormatToEncoding(unsigned bits_per_pixel);
 
 PropertyInfo GetPropertyInfo(Camera& camera, const PropertyType& prop_type);

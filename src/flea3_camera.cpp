@@ -232,7 +232,7 @@ bool Flea3Camera::GrabImage(sensor_msgs::Image& image_msg,
   std::string encoding;
   if (camera_info_.isColorCamera) {
     if (bayer_format != NONE) {
-      encoding = BayerFormatToEncoding(bayer_format);
+      encoding = BayerFormatToEncoding(bayer_format, bits_per_pixel);
     } else if (bits_per_pixel == 24) {
       encoding = sensor_msgs::image_encodings::RGB8;
     } else {
@@ -403,12 +403,9 @@ float Flea3Camera::getExposureTimeSec() {
     if (error == PGRERROR_OK) {
       const auto exposure_ms = shutter_prop.absValue;
       return exposure_ms * 1e-3;
-    } else {
-      return config_.shutter;
     }
-  } else {
-    return config_.shutter;
   }
+  return config_.shutter;
 }
 
 }  // namespace flea3

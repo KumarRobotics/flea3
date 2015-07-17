@@ -5,21 +5,39 @@
 
 namespace flea3 {
 
-std::string BayerFormatToEncoding(const BayerTileFormat& bayer_format) {
+std::string BayerFormatToEncoding(const BayerTileFormat& bayer_format,
+                                  unsigned bits_per_pixel) {
   using namespace sensor_msgs::image_encodings;
-  switch (bayer_format) {
-    case RGGB:
-      return BAYER_RGGB8;
-    case GRBG:
-      return BAYER_GRBG8;
-    case GBRG:
-      return BAYER_GBRG8;
-    case BGGR:
-      return BAYER_BGGR8;
-    case NONE:
-      return MONO8;
-    default:
-      return MONO8;
+  if (bits_per_pixel == 8) {
+    switch (bayer_format) {
+      case RGGB:
+        return BAYER_RGGB8;
+      case GRBG:
+        return BAYER_GRBG8;
+      case GBRG:
+        return BAYER_GBRG8;
+      case BGGR:
+        return BAYER_BGGR8;
+      case NONE:
+        return MONO8;
+      default:
+        return MONO8;
+    }
+  } else if (bits_per_pixel == 16) {
+    switch (bayer_format) {
+      case RGGB:
+        return BAYER_RGGB16;
+      case GRBG:
+        return BAYER_GRBG16;
+      case GBRG:
+        return BAYER_GBRG16;
+      case BGGR:
+        return BAYER_BGGR16;
+      case NONE:
+        return MONO16;
+      default:
+        return MONO16;
+    }
   }
 }
 
