@@ -20,6 +20,7 @@
 //=============================================================================
 
 #include <unistd.h>
+#include <iostream>
 
 #include <flycapture/FlyCapture2.h>
 
@@ -46,6 +47,16 @@ void PrintBuildInfo() {
   printf("%s", timeStamp);
 }
 
+void PrintProperty(const Property& prop) {
+  std::cout << "present: " << prop.present
+            << "\nabsControl: " << prop.absControl
+            << "\nonePush:" << prop.onePush << "\nonOff:" << prop.onOff
+            << "\nautoManualMode: " << prop.autoManualMode
+            << "\nabsValue: " << prop.absValue << std::endl;
+}
+
+void PrintPropertyInfo(const PropertyInfo& prop_info) {}
+
 void PrintCameraInfo(CameraInfo* pCamInfo) {
   printf(
       "\n*** CAMERA INFORMATION ***\n"
@@ -61,7 +72,7 @@ void PrintCameraInfo(CameraInfo* pCamInfo) {
       pCamInfo->firmwareVersion, pCamInfo->firmwareBuildTime);
 }
 
-void PrintError(Error error) { error.PrintErrorTrace(); }
+void PrintError(const Error error) { error.PrintErrorTrace(); }
 
 bool CheckSoftwareTriggerPresence(Camera* pCam) {
   const unsigned int k_triggerInq = 0x530;
@@ -88,12 +99,14 @@ bool PollForTriggerReady(Camera* pCam) {
   Error error;
   unsigned int regVal = 0;
 
+  int num_polls = 0;
   do {
     error = pCam->ReadRegister(k_softwareTrigger, &regVal);
     if (error != PGRERROR_OK) {
       PrintError(error);
       return false;
     }
+    std::cout << "polling: " << ++num_polls << std::endl;
 
   } while ((regVal >> 31) != 0);
 
@@ -266,6 +279,34 @@ int main(int /*argc*/, char** /*argv*/) {
     PrintError(error);
     return -1;
   }
+
+  Property prop;
+  prop.type = FRAME_RATE;
+  error = cam.GetProperty(&prop);
+  if (error != PGRERROR_OK) {
+    error.PrintErrorTrace();
+    return -1;
+  }
+  std::cout << "Current frame rate: " << std::endl;
+  PrintProperty(prop);
+
+  prop.onOff = false;
+  prop.absControl = true;
+  prop.absValue = 100;
+  prop.autoManualMode = false;
+  error = cam.SetProperty(&prop);
+  if (error != PGRERROR_OK) {
+    error.PrintErrorTrace();
+    return -1;
+  }
+  std::cout << "Set frame rate to: " << prop.absValue << std::endl;
+
+  error = cam.GetProperty(&prop);
+  if (error != PGRERROR_OK) {
+    error.PrintErrorTrace();
+    return -1;
+  }
+  std::cout << "After setting frame rate: " << prop.absValue << std::endl;
 
   // Camera is ready, start capturing images
   error = cam.StartCapture();

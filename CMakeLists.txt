@@ -49,6 +49,9 @@ target_link_libraries(flea3_stereo_node ${PROJECT_NAME})
 add_executable(flea3_list_cameras src/list_cameras.cpp)
 target_link_libraries(flea3_list_cameras ${PROJECT_NAME})
 
+add_executable(async_trigger src/flycapture/async_trigger.cpp)
+target_link_libraries(async_trigger ${FlyCapture2_LIBRARIES})
+
 add_dependencies(${PROJECT_NAME}
     ${catkin_EXPORTED_TARGETS}
     ${PROJECT_NAME}_gencfg
