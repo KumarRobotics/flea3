@@ -8,7 +8,7 @@ namespace flea3 {
 
 class Flea3Ros : public camera_base::CameraRosBase {
  public:
-  explicit Flea3Ros(const ros::NodeHandle& nh,
+  explicit Flea3Ros(const ros::NodeHandle& pnh,
                     const std::string& prefix = std::string());
 
   Flea3Camera& camera();
@@ -17,12 +17,15 @@ class Flea3Ros : public camera_base::CameraRosBase {
 
   bool Grab(const sensor_msgs::ImagePtr& image_msg,
             const sensor_msgs::CameraInfoPtr& cinfo_msg) override;
+  void PublishImageMetadata(const ros::Time& time);
 
   void Stop();
   void Start();
 
  private:
   Flea3Camera flea3_;
+  ros::NodeHandle pnh_;
+  ros::Publisher image_metadata_pub_;
 };
 
 }  // namespace flea3

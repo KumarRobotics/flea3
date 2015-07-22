@@ -7,6 +7,11 @@ namespace flea3 {
 
 using namespace FlyCapture2;
 
+union AbsValueConversion {
+  unsigned int uint_val;
+  float float_val;
+};
+
 Flea3Camera::Flea3Camera(const std::string& serial) : serial_(serial) {
   //  frame_rates_ = {1.875, 3.75, 7.5, 15, 30, 60, 120, 240};
   // Wait for camera to power up
@@ -33,7 +38,7 @@ bool Flea3Camera::Connect() {
   bool success;
   try {
     PgrError(camera_.Connect(&guid), "Failed to connect to camera");
-    EnableMetadata(camera_);
+    //    EnableMetadata(camera_);
     // This is a total hack, it exists because one of my camera doesn't enable
     // auto white balance by default. You have to write to its presence register
     // to bring it online.
@@ -246,6 +251,22 @@ bool Flea3Camera::GrabImage(sensor_msgs::Image& image_msg,
                                 image.GetData());
 }
 
+void Flea3Camera::GrabImageMetadata(ImageMetadata& image_metadata_msg) {
+  AbsValueConversion abs_val;
+
+  camera_.ReadRegister(0x908, &abs_val.uint_val);
+  image_metadata_msg.exposure = abs_val.float_val;
+
+  camera_.ReadRegister(0x918, &abs_val.uint_val);
+  image_metadata_msg.shutter = abs_val.float_val;
+
+  camera_.ReadRegister(0x928, &abs_val.uint_val);
+  image_metadata_msg.gain = abs_val.float_val;
+
+  camera_.ReadRegister(0x938, &abs_val.uint_val);
+  image_metadata_msg.brightness = abs_val.float_val;
+}
+
 void Flea3Camera::SetWhiteBalanceRedBlue(bool& white_balance,
                                          bool& auto_white_balance, int& red,
                                          int& blue) {
@@ -382,8 +403,7 @@ bool Flea3Camera::PollForTriggerReady() {
 bool Flea3Camera::FireSoftwareTrigger() {
   const unsigned software_trigger_addr = 0x62C;
   const unsigned fire = 0x80000000;
-  const auto error = camera_.WriteRegister(software_trigger_addr, fire);
-  return error == PGRERROR_OK;
+  return camera_.WriteRegister(software_trigger_addr, fire) == PGRERROR_OK;
 }
 
 bool Flea3Camera::RequestSingle() {
@@ -391,19 +411,16 @@ bool Flea3Camera::RequestSingle() {
     if (PollForTriggerReady()) {
       return FireSoftwareTrigger();
     }
+    return false;
   }
   return true;
 }
 
-float Flea3Camera::getExposureTimeSec() {
+float Flea3Camera::getShutterTimeSec() {
   if (config_.auto_shutter) {
-    Property shutter_prop;
-    shutter_prop.type = SHUTTER;
-    const auto error = camera_.GetProperty(&shutter_prop);
-    if (error == PGRERROR_OK) {
-      const auto exposure_ms = shutter_prop.absValue;
-      return exposure_ms * 1e-3;
-    }
+    AbsValueConversion abs_val;
+    camera_.ReadRegister(0x918, &abs_val.uint_val);
+    return abs_val.float_val;
   }
   return config_.shutter;
 }

@@ -7,7 +7,7 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_SOURCE_DIR}/cmake)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -std=c++11")
 
 find_package(catkin REQUIRED COMPONENTS
-    roscpp nodelet camera_base message_generation
+    roscpp nodelet camera_base message_generation std_msgs
     )
 
 find_library(FlyCapture2_LIBRARIES flycapture)
@@ -17,9 +17,18 @@ else()
     message(STATUS "FlyCapture2 libraries not found")
 endif()
 
+# Dynamic reconfigure
 generate_dynamic_reconfigure_options(cfg/Flea3Dyn.cfg)
 
-catkin_package()
+# Message
+add_message_files(DIRECTORY msg
+    FILES ImageMetadata.msg
+    )
+generate_messages(DEPENDENCIES std_msgs)
+
+catkin_package(
+    CATKIN_DEPENDS message_runtime std_msgs
+    )
 
 # We don't include FlyCapture2 because it is installed to /usr/include
 include_directories(

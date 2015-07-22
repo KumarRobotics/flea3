@@ -5,6 +5,7 @@
 #include "flea3/Flea3DynConfig.h"
 #include <sensor_msgs/Image.h>
 #include <sensor_msgs/CameraInfo.h>
+#include "flea3/ImageMetadata.h"
 
 namespace flea3 {
 using namespace FlyCapture2;
@@ -21,13 +22,14 @@ class Flea3Camera {
 
   bool GrabImage(sensor_msgs::Image& image_msg,
                  sensor_msgs::CameraInfo& cinfo_msg);
+  void GrabImageMetadata(flea3::ImageMetadata& image_metadata_msg);
 
   bool Connect();
   void Configure(Config& config);
   void StarCapture();
   void StopCapture();
   bool RequestSingle();
-  float getExposureTimeSec();
+  float getShutterTimeSec();
 
  private:
   std::string AvailableDevice();
@@ -66,12 +68,12 @@ class Flea3Camera {
   bool PollForTriggerReady();
   bool FireSoftwareTrigger();
 
+  bool capturing_{false};
   BusManager bus_manager_;
   Camera camera_;
   CameraInfo camera_info_;
   std::string serial_;
   Config config_;
-  bool capturing_{false};
 };
 
 }  // namespace flea3

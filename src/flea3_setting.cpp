@@ -255,11 +255,9 @@ void EnableMetadata(Camera& camera) {
   info.gain.onOff = true;
   info.shutter.onOff = true;
   info.exposure.onOff = true;
-  info.timestamp.onOff = true;
   info.brightness.onOff = true;
   info.whiteBalance.onOff = true;
-  info.frameCounter.onOff = true;
-  PgrWarn(camera.SetEmbeddedImageInfo(&info), "Failed to enable metadata");
+  PgrError(camera.SetEmbeddedImageInfo(&info), "Failed to enable metadata");
 }
 
 bool IsAutoWhiteBalanceSupported(Camera& camera) {
