@@ -257,8 +257,9 @@ void Flea3Camera::GrabImageMetadata(ImageMetadata& image_metadata_msg) {
   camera_.ReadRegister(0x908, &abs_val.uint_val);
   image_metadata_msg.exposure_value = abs_val.float_val;
 
+  // The value read from abs register is in seconds
   camera_.ReadRegister(0x918, &abs_val.uint_val);
-  image_metadata_msg.shutter_ms = abs_val.float_val;
+  image_metadata_msg.shutter_ms = abs_val.float_val * 1000;
 
   camera_.ReadRegister(0x928, &abs_val.uint_val);
   image_metadata_msg.gain_db = abs_val.float_val;
