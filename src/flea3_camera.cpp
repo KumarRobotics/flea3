@@ -117,8 +117,8 @@ void Flea3Camera::Configure(Config& config) {
 
   // Exposure
   SetExposure(config.exposure, config.auto_exposure, config.exposure_value);
-  SetShutter(config.auto_shutter, config.shutter);
-  SetGain(config.auto_gain, config.gain);
+  SetShutter(config.auto_shutter, config.shutter_ms);
+  SetGain(config.auto_gain, config.gain_db);
 
   SetBrightness(config.brightness);
   SetGamma(config.gamma);
@@ -253,15 +253,15 @@ bool Flea3Camera::GrabImage(sensor_msgs::Image& image_msg,
 
 void Flea3Camera::GrabImageMetadata(ImageMetadata& image_metadata_msg) {
   AbsValueConversion abs_val;
-
+  // These registers can be found in register reference manual
   camera_.ReadRegister(0x908, &abs_val.uint_val);
-  image_metadata_msg.exposure = abs_val.float_val;
+  image_metadata_msg.exposure_value = abs_val.float_val;
 
   camera_.ReadRegister(0x918, &abs_val.uint_val);
-  image_metadata_msg.shutter = abs_val.float_val;
+  image_metadata_msg.shutter_ms = abs_val.float_val;
 
   camera_.ReadRegister(0x928, &abs_val.uint_val);
-  image_metadata_msg.gain = abs_val.float_val;
+  image_metadata_msg.gain_db = abs_val.float_val;
 
   camera_.ReadRegister(0x938, &abs_val.uint_val);
   image_metadata_msg.brightness = abs_val.float_val;
@@ -319,14 +319,12 @@ void Flea3Camera::SetExposure(bool& exposure, bool& auto_exposure,
   SetProperty(camera_, AUTO_EXPOSURE, exposure, auto_exposure, exposure_value);
 }
 
-void Flea3Camera::SetShutter(bool& auto_shutter, double& shutter) {
-  auto shutter_ms = 1000.0 * shutter;
+void Flea3Camera::SetShutter(bool& auto_shutter, double& shutter_ms) {
   SetProperty(camera_, SHUTTER, auto_shutter, shutter_ms);
-  shutter = shutter_ms / 1000.0;
 }
 
-void Flea3Camera::SetGain(bool& auto_gain, double& gain) {
-  SetProperty(camera_, GAIN, auto_gain, gain);
+void Flea3Camera::SetGain(bool& auto_gain, double& gain_db) {
+  SetProperty(camera_, GAIN, auto_gain, gain_db);
 }
 
 void Flea3Camera::SetBrightness(double& brightness) {
@@ -416,13 +414,14 @@ bool Flea3Camera::RequestSingle() {
   return true;
 }
 
-float Flea3Camera::getShutterTimeSec() {
+double Flea3Camera::getShutterTimeSec() {
   if (config_.auto_shutter) {
     AbsValueConversion abs_val;
+    // Register for abs_shutter_val
     camera_.ReadRegister(0x918, &abs_val.uint_val);
-    return abs_val.float_val;
+    return abs_val.float_val / 1000.0;
   }
-  return config_.shutter;
+  return config_.shutter_ms / 1000.0;
 }
 
 }  // namespace flea3

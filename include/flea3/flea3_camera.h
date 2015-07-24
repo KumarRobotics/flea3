@@ -29,7 +29,7 @@ class Flea3Camera {
   void StarCapture();
   void StopCapture();
   bool RequestSingle();
-  float getShutterTimeSec();
+  double getShutterTimeSec();
 
  private:
   std::string AvailableDevice();
@@ -58,8 +58,8 @@ class Flea3Camera {
   void SetRawBayerOutput(bool& raw_bayer_output);
 
   void SetExposure(bool& exposure, bool& auto_exposure, double& exposure_value);
-  void SetShutter(bool& auto_shutter, double& shutter);
-  void SetGain(bool& auto_gain, double& gain);
+  void SetShutter(bool& auto_shutter, double& shutter_ms);
+  void SetGain(bool& auto_gain, double& gain_db);
   void SetBrightness(double& brightness);
   void SetGamma(double& gamma);
 
