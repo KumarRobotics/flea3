@@ -113,8 +113,8 @@ void PrintProperty(const Property& prop, const std::string& prop_name) {
 }
 
 unsigned ReadRegister(Camera& camera, unsigned address) {
-  unsigned reg_val;
-  PgrError(camera.ReadRegister(address, &reg_val), "Failed to read register");
+  unsigned reg_val = 0;
+  PgrWarn(camera.ReadRegister(address, &reg_val), "Failed to read register");
   return reg_val;
 }
 
@@ -143,7 +143,7 @@ std::pair<Format7Info, bool> GetFormat7Info(Camera& camera, const Mode& mode) {
 
 CameraInfo GetCameraInfo(Camera& camera) {
   CameraInfo camera_info;
-  PgrError(camera.GetCameraInfo(&camera_info), "Failed to get camera info");
+  PgrWarn(camera.GetCameraInfo(&camera_info), "Failed to get camera info");
   return camera_info;
 }
 
@@ -167,8 +167,8 @@ FrameRate GetMaxFrameRate(Camera& camera, const VideoMode& video_mode) {
 std::pair<VideoMode, FrameRate> GetVideoModeAndFrameRate(Camera& camera) {
   VideoMode video_mode;
   FrameRate frame_rate;
-  PgrError(camera.GetVideoModeAndFrameRate(&video_mode, &frame_rate),
-           "Failed to get VideoMode and FrameRate");
+  PgrWarn(camera.GetVideoModeAndFrameRate(&video_mode, &frame_rate),
+          "Failed to get VideoMode and FrameRate");
   return {video_mode, frame_rate};
 }
 
@@ -197,16 +197,6 @@ void SetProperty(Camera& camera, const PropertyType& prop_type, bool on,
 
 void WriteRegister(Camera& camera, unsigned address, unsigned value) {
   PgrWarn(camera.WriteRegister(address, value), "Failed to write register");
-}
-
-void EnableMetadata(Camera& camera) {
-  EmbeddedImageInfo info;
-  info.gain.onOff = true;
-  info.shutter.onOff = true;
-  info.exposure.onOff = true;
-  info.brightness.onOff = true;
-  info.whiteBalance.onOff = true;
-  PgrError(camera.SetEmbeddedImageInfo(&info), "Failed to enable metadata");
 }
 
 bool IsAutoWhiteBalanceSupported(Camera& camera) {

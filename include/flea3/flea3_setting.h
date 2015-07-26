@@ -33,8 +33,6 @@ void SetProperty(Camera& camera, const PropertyType& prop_type, bool on,
 unsigned ReadRegister(Camera& camera, unsigned address);
 void WriteRegister(Camera& camera, unsigned address, unsigned value);
 
-void EnableMetadata(Camera& camera);
-
 bool IsAutoWhiteBalanceSupported(Camera& camera);
 bool IsFormat7Supported(Camera& camera);
 std::pair<Format7PacketInfo, bool> IsFormat7SettingsValid(

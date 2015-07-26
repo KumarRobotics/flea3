@@ -59,7 +59,7 @@ void Flea3Camera::SetConfiguration() {
   // Set the grab timeout to 1 seconds
   config.grabTimeout = 1000;
   // Try 2 times before declaring failure
-  config.registerTimeoutRetries = 2;
+  config.registerTimeoutRetries = 3;
   // NOTE: Cannot do this here, will block all the following settings on format7
   // Maybe put this in configure
   //  config.highPerformanceRetrieveBuffer = true;
