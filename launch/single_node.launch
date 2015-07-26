@@ -12,9 +12,14 @@
   <arg name="fps" default="$(arg rate)"/>
 
   <arg name="video_mode" default="23"/>
+  <arg name="pixel_format" default="22"/>
+  <arg name="exposure" default="true"/>
   <arg name="auto_exposure" default="true"/>
   <arg name="auto_shutter" default="true"/>
+  <arg name="shutter_ms" default="10.0"/>
   <arg name="auto_gain" default="true"/>
+  <arg name="gain_db" default="0.0"/>
+  <arg name="white_balance" default="true"/>
   <arg name="auto_white_balance" default="true"/>
 
   <!-- Node Settings -->
@@ -33,9 +38,13 @@
 
   	<param name="fps" type="double" value="$(arg fps)"/>
     <param name="video_mode" type="int" value="$(arg video_mode)"/>
+    <param name="exposure" type="bool" value="$(arg exposure)"/>
     <param name="auto_exposure" type="bool" value="$(arg auto_exposure)"/>
     <param name="auto_shutter" type="bool" value="$(arg auto_shutter)"/>
+    <param name="shutter_ms" type="double" value="$(arg shutter_ms)"/>
     <param name="auto_gain" type="bool" value="$(arg auto_gain)"/>
+    <param name="gain_db" type="double" value="$(arg gain_db)"/>
+    <param name="white_balance" type="bool" value="$(arg white_balance)"/>
     <param name="auto_white_balance" type="bool" value="$(arg auto_white_balance)"/>
   </node>
 
