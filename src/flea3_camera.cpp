@@ -38,7 +38,6 @@ bool Flea3Camera::Connect() {
   bool success;
   try {
     PgrError(camera_.Connect(&guid), "Failed to connect to camera");
-    //    EnableMetadata(camera_);
     // This is a total hack, it exists because one of my camera doesn't enable
     // auto white balance by default. You have to write to its presence register
     // to bring it online.
@@ -61,7 +60,8 @@ void Flea3Camera::SetConfiguration() {
   config.grabTimeout = 1000;
   // Try 2 times before declaring failure
   config.registerTimeoutRetries = 2;
-  // Cannot do this here, will block all the following settings on format7
+  // NOTE: Cannot do this here, will block all the following settings on format7
+  // Maybe put this in configure
   //  config.highPerformanceRetrieveBuffer = true;
 
   // Set the camera configuration
@@ -218,9 +218,9 @@ void Flea3Camera::SetStandardVideoMode(int& video_mode) {
 }
 
 void Flea3Camera::SetFrameRate(double& frame_rate) {
-  // Since frame rate is always on and auto mode is not supported, we just use
-  // SetProperty
-  SetProperty(camera_, FRAME_RATE, frame_rate);
+  SetProperty(camera_, FRAME_RATE, true, false, frame_rate);
+  const auto prop = GetProperty(camera_, FRAME_RATE);
+  frame_rate = prop.absValue;
 }
 
 bool Flea3Camera::GrabImage(sensor_msgs::Image& image_msg,
@@ -318,22 +318,36 @@ void Flea3Camera::EnableAutoWhiteBalance() {
 void Flea3Camera::SetExposure(bool& exposure, bool& auto_exposure,
                               double& exposure_value) {
   SetProperty(camera_, AUTO_EXPOSURE, exposure, auto_exposure, exposure_value);
+  const auto prop = GetProperty(camera_, AUTO_EXPOSURE);
+  exposure = prop.onOff;
+  auto_exposure = prop.autoManualMode;
+  exposure_value = prop.absValue;
 }
 
 void Flea3Camera::SetShutter(bool& auto_shutter, double& shutter_ms) {
-  SetProperty(camera_, SHUTTER, auto_shutter, shutter_ms);
+  SetProperty(camera_, SHUTTER, true, auto_shutter, shutter_ms);
+  const auto prop = GetProperty(camera_, SHUTTER);
+  auto_shutter = prop.autoManualMode;
+  shutter_ms = prop.absValue;
 }
 
 void Flea3Camera::SetGain(bool& auto_gain, double& gain_db) {
-  SetProperty(camera_, GAIN, auto_gain, gain_db);
+  SetProperty(camera_, GAIN, true, auto_gain, gain_db);
+  const auto prop = GetProperty(camera_, GAIN);
+  auto_gain = prop.autoManualMode;
+  gain_db = prop.absValue;
 }
 
 void Flea3Camera::SetBrightness(double& brightness) {
-  SetProperty(camera_, BRIGHTNESS, brightness);
+  SetProperty(camera_, BRIGHTNESS, true, false, brightness);
+  const auto prop = GetProperty(camera_, BRIGHTNESS);
+  brightness = prop.absValue;
 }
 
 void Flea3Camera::SetGamma(double& gamma) {
-  SetProperty(camera_, GAMMA, gamma);
+  SetProperty(camera_, BRIGHTNESS, true, false, gamma);
+  const auto prop = GetProperty(camera_, GAMMA);
+  gamma = prop.absValue;
 }
 
 void Flea3Camera::SetRawBayerOutput(bool& raw_bayer_output) {

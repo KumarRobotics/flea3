@@ -121,14 +121,14 @@ unsigned ReadRegister(Camera& camera, unsigned address) {
 PropertyInfo GetPropertyInfo(Camera& camera, const PropertyType& prop_type) {
   PropertyInfo prop_info;
   prop_info.type = prop_type;
-  PgrError(camera.GetPropertyInfo(&prop_info), "Failed to get property info");
+  PgrWarn(camera.GetPropertyInfo(&prop_info), "Failed to get property info");
   return prop_info;
 }
 
 Property GetProperty(Camera& camera, const PropertyType& prop_type) {
   Property prop;
   prop.type = prop_type;
-  PgrError(camera.GetProperty(&prop), "Failed to get property");
+  PgrWarn(camera.GetProperty(&prop), "Failed to get property");
   return prop;
 }
 
@@ -178,71 +178,20 @@ float GetCameraTemperature(Camera& camera) {
   return prop.valueA / 10.0f - 273.15f;
 }
 
-void SetProperty(Camera& camera, const PropertyType& prop_type, bool& on,
-                 bool& auto_on, double& value) {
-  auto prop_info = GetPropertyInfo(camera, prop_type);
-  if (prop_info.present) {
-    Property prop;
-    prop.type = prop_type;
-    prop.autoManualMode = auto_on;
-    prop.absControl = prop_info.absValSupported;
-    prop.onOff = on;
-    prop.absValue = value;
-    PgrWarn(camera.SetProperty(&prop),
-            "Failed to set property: " + std::to_string(prop_type));
-
-    // Validate and update value
-    PgrWarn(camera.GetProperty(&prop),
-            "Failed to get property: " + std::to_string(prop_type));
-    on = prop.onOff;
-    if (prop.onOff) {
-      value = prop.absValue;
-      auto_on = prop.autoManualMode;
-    }
-  }
-}
-
-void SetProperty(Camera& camera, const PropertyType& prop_type, bool& auto_on,
-                 double& value) {
-  auto prop_info = GetPropertyInfo(camera, prop_type);
-  if (prop_info.present) {
-    Property prop;
-    prop.type = prop_type;
-    prop.autoManualMode = auto_on;
-    prop.absControl = prop_info.absValSupported;
-    prop.onOff = prop_info.onOffSupported;
-    prop.absValue = value;
-    PgrWarn(camera.SetProperty(&prop),
-            "Failed to set property: " + std::to_string(prop_type));
-
-    // Validate and update value
-    PgrWarn(camera.GetProperty(&prop),
-            "Failed to get property: " + std::to_string(prop_type));
-    if (prop.onOff) {
-      value = prop.absValue;
-      auto_on = prop.autoManualMode;
-    }
-  }
-}
-
-void SetProperty(Camera& camera, const PropertyType& prop_type, double& value) {
+void SetProperty(Camera& camera, const PropertyType& prop_type, bool on,
+                 bool auto_on, double value) {
   const auto prop_info = GetPropertyInfo(camera, prop_type);
   if (prop_info.present) {
     Property prop;
     prop.type = prop_type;
-    prop.autoManualMode = false;
+    prop.onOff = on && prop_info.onOffSupported;
+    prop.autoManualMode = auto_on && prop_info.autoSupported;
     prop.absControl = prop_info.absValSupported;
-    prop.onOff = prop_info.onOffSupported;
+    value = std::max<double>(std::min<double>(value, prop_info.absMax),
+                             prop_info.absMin);
     prop.absValue = value;
     PgrWarn(camera.SetProperty(&prop),
-            "Failed to set property: " + std::to_string(prop_type));
-
-    // Validate and update value
-    PgrWarn(camera.GetProperty(&prop),
-            "Failed to get property" + std::to_string(prop_type));
-    if (prop.onOff) {
-      value = prop.absValue;
-    }
+            "Faield to set property: " + std::to_string(prop_type));
   }
 }
 
