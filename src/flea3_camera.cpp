@@ -220,7 +220,9 @@ void Flea3Camera::SetStandardVideoMode(int& video_mode) {
 void Flea3Camera::SetFrameRate(double& frame_rate) {
   SetProperty(camera_, FRAME_RATE, true, false, frame_rate);
   const auto prop = GetProperty(camera_, FRAME_RATE);
-  frame_rate = prop.absValue;
+  if (prop.onOff) {
+    frame_rate = prop.absValue;
+  }
 }
 
 bool Flea3Camera::GrabImage(sensor_msgs::Image& image_msg,
@@ -317,36 +319,41 @@ void Flea3Camera::EnableAutoWhiteBalance() {
 
 void Flea3Camera::SetExposure(bool& exposure, bool& auto_exposure,
                               double& exposure_value) {
-  SetProperty(camera_, AUTO_EXPOSURE, exposure, auto_exposure, exposure_value);
-  const auto prop = GetProperty(camera_, AUTO_EXPOSURE);
+  const auto prop_type = AUTO_EXPOSURE;
+  SetProperty(camera_, prop_type, exposure, auto_exposure, exposure_value);
+  const auto prop = GetProperty(camera_, prop_type);
   exposure = prop.onOff;
   auto_exposure = prop.autoManualMode;
   exposure_value = prop.absValue;
 }
 
 void Flea3Camera::SetShutter(bool& auto_shutter, double& shutter_ms) {
-  SetProperty(camera_, SHUTTER, true, auto_shutter, shutter_ms);
-  const auto prop = GetProperty(camera_, SHUTTER);
+  const auto prop_type = SHUTTER;
+  SetProperty(camera_, prop_type, true, auto_shutter, shutter_ms);
+  const auto prop = GetProperty(camera_, prop_type);
   auto_shutter = prop.autoManualMode;
   shutter_ms = prop.absValue;
 }
 
 void Flea3Camera::SetGain(bool& auto_gain, double& gain_db) {
-  SetProperty(camera_, GAIN, true, auto_gain, gain_db);
-  const auto prop = GetProperty(camera_, GAIN);
+  const auto prop_type = GAIN;
+  SetProperty(camera_, prop_type, true, auto_gain, gain_db);
+  const auto prop = GetProperty(camera_, prop_type);
   auto_gain = prop.autoManualMode;
   gain_db = prop.absValue;
 }
 
 void Flea3Camera::SetBrightness(double& brightness) {
-  SetProperty(camera_, BRIGHTNESS, true, false, brightness);
-  const auto prop = GetProperty(camera_, BRIGHTNESS);
+  const auto prop_type = BRIGHTNESS;
+  SetProperty(camera_, prop_type, true, false, brightness);
+  const auto prop = GetProperty(camera_, prop_type);
   brightness = prop.absValue;
 }
 
 void Flea3Camera::SetGamma(double& gamma) {
-  SetProperty(camera_, BRIGHTNESS, true, false, gamma);
-  const auto prop = GetProperty(camera_, GAMMA);
+  const auto prop_type = GAMMA;
+  SetProperty(camera_, prop_type, true, false, gamma);
+  const auto prop = GetProperty(camera_, prop_type);
   gamma = prop.absValue;
 }
 
