@@ -19,6 +19,10 @@
   <arg name="shutter_ms" default="10.0"/>
   <arg name="auto_gain" default="true"/>
   <arg name="gain_db" default="0.0"/>
+  <arg name="trigger_source" default="-1"/>
+  <arg name="trigger_polarity" default="0"/>
+  <arg name="strobe_control" default="-1"/>
+  <arg name="strobe_polarity" default="0"/>
   <arg name="white_balance" default="true"/>
   <arg name="auto_white_balance" default="true"/>
 
@@ -44,6 +48,10 @@
     <param name="shutter_ms" type="double" value="$(arg shutter_ms)"/>
     <param name="auto_gain" type="bool" value="$(arg auto_gain)"/>
     <param name="gain_db" type="double" value="$(arg gain_db)"/>
+    <param name="trigger_source" type="int" value="$(arg trigger_source)"/>
+    <param name="trigger_polarity" type="int" value="$(arg trigger_polarity)"/>
+    <param name="strobe_control" type="int" value="$(arg strobe_control)"/>
+    <param name="strobe_polarity" type="int" value="$(arg strobe_polarity)"/>
     <param name="white_balance" type="bool" value="$(arg white_balance)"/>
     <param name="auto_white_balance" type="bool" value="$(arg auto_white_balance)"/>
   </node>
