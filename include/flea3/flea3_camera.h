@@ -65,9 +65,12 @@ class Flea3Camera {
 
   // Trigger
   void SetTrigger(int& trigger_source, int& polarity);
-  void SetStrobe(int& strobe_control, int& polarity);
   bool PollForTriggerReady();
   bool FireSoftwareTrigger();
+
+  // Strobe
+  void SetStrobe(int& strobe_control, int& polarity);
+  void TurnOffStrobe(const std::vector<int>& strobes);
 
   bool capturing_{false};
   BusManager bus_manager_;

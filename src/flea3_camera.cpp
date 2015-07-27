@@ -28,11 +28,7 @@ Flea3Camera::Flea3Camera(const std::string& serial) : serial_(serial) {
 
 Flea3Camera::~Flea3Camera() {
   if (camera_.IsConnected()) {
-    // TODO: turn off strobe
-    StrobeControl strobe;
-    strobe.source = 2;
-    strobe.onOff = false;
-    PgrWarn(camera_.SetStrobe(&strobe), "Failed to set strobe");
+    TurnOffStrobe({1, 2, 3});
     PgrError(camera_.Disconnect(), "Failed to disconnect camera");
   }
 }
@@ -194,7 +190,7 @@ void Flea3Camera::SetFormat7VideoMode(int& format7_mode, int& pixel_format,
   pixel_format = (pixel_format == 0) ? 22 : pixel_format;
   fmt7_settings.pixelFormat = static_cast<PixelFormat>(1 << pixel_format);
   // Set format7 ROI
-  // Center ROI for now
+  // NOTE: Center ROI for now
   SetRoi(fmt7_info.first, fmt7_settings, width, height);
 
   // Validate the settings
@@ -392,21 +388,24 @@ void Flea3Camera::SetTrigger(int& trigger_source, int& polarity) {
   TriggerModeInfo trigger_mode_info;
   PgrWarn(camera_.GetTriggerModeInfo(&trigger_mode_info),
           "Failed to get trigger mode info");
+  // Check if trigger is supported
   if (!trigger_mode_info.present) {
-    // Camera doesn't support external triggering, so set enable_trigger to
-    // false
-    ROS_WARN("Camera does not support trigger");
+    if (trigger_source == Flea3Dyn_ts_sw &&
+        !trigger_mode_info.softwareTriggerSupported) {
+      ROS_WARN("Camera does not support software trigger");
+      trigger_source = Flea3Dyn_ts_off;
+    }
+    ROS_WARN("Camera does not support external trigger");
     trigger_source = Flea3Dyn_ts_off;
     return;
   }
 
+  // Turn off external trigger
   TriggerMode trigger_mode;
-
   if (trigger_source == Flea3Dyn_ts_off) {
     trigger_mode.onOff = false;
     PgrWarn(camera_.SetTriggerMode(&trigger_mode),
             "Failed to set trigger mode");
-    ROS_INFO("Turning off trigger mode");
     return;
   }
 
@@ -420,24 +419,37 @@ void Flea3Camera::SetTrigger(int& trigger_source, int& polarity) {
 }
 
 void Flea3Camera::SetStrobe(int& strobe_control, int& polarity) {
+  // Turn off all strobe when we switch it off
+  if (strobe_control == Flea3Dyn_sc_off) {
+    TurnOffStrobe({1, 2, 3});
+    return;
+  }
+
+  // Check if required strobe is supported
   StrobeInfo strobe_info;
+  strobe_info.source = strobe_control;
   PgrWarn(camera_.GetStrobeInfo(&strobe_info), "Failed to get strobe info");
-  //  if (!strobe_info.present) {
-  //    ROS_WARN("Camera does not support strobe");
-  //    strobe_control = Flea3Dyn_sc_off;
-  //  }
+  if (!strobe_info.present) {
+    ROS_WARN("Camera does not support strobe");
+    strobe_control = Flea3Dyn_sc_off;
+    return;
+  }
 
   StrobeControl strobe;
-  strobe.source = 2;
-  if (strobe_control == Flea3Dyn_sc_off) {
-    strobe.onOff = false;
-  } else {
-    // TODO: turn off previous turned on strobe control
-    strobe.onOff = true;
-    strobe.polarity = polarity;
-    strobe.duration = 0;
-  }
+  strobe.source = strobe_control;
+  strobe.onOff = true;
+  strobe.polarity = polarity;
+  strobe.duration = 0;
   PgrWarn(camera_.SetStrobe(&strobe), "Failed to set strobe");
+}
+
+void Flea3Camera::TurnOffStrobe(const std::vector<int>& strobes) {
+  for (const auto& s : strobes) {
+    StrobeControl strobe;
+    strobe.source = s;
+    strobe.onOff = false;
+    PgrWarn(camera_.SetStrobe(&strobe), "Failed to set strobe");
+  }
 }
 
 bool Flea3Camera::PollForTriggerReady() {
