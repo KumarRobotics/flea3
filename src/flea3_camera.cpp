@@ -27,8 +27,14 @@ Flea3Camera::Flea3Camera(const std::string& serial) : serial_(serial) {
 }
 
 Flea3Camera::~Flea3Camera() {
-  if (camera_.IsConnected())
+  if (camera_.IsConnected()) {
+    // TODO: turn off strobe
+    StrobeControl strobe;
+    strobe.source = 2;
+    strobe.onOff = false;
+    PgrWarn(camera_.SetStrobe(&strobe), "Failed to set strobe");
     PgrError(camera_.Disconnect(), "Failed to disconnect camera");
+  }
 }
 
 bool Flea3Camera::Connect() {
@@ -124,7 +130,9 @@ void Flea3Camera::Configure(Config& config) {
   SetGamma(config.gamma);
 
   // Trigger
-  SetTriggerMode(config.enable_trigger);
+  SetTrigger(config.trigger_source, config.trigger_polarity);
+  // Strobe
+  SetStrobe(config.strobe_control, config.strobe_polarity);
 
   // Save this config
   config_ = config;
@@ -380,29 +388,56 @@ void Flea3Camera::SetRoi(const Format7Info& format7_info,
   format7_settings.height = height;
 }
 
-// TODO: Add support for GPIO external trigger
-void Flea3Camera::SetTriggerMode(bool& enable_trigger) {
+void Flea3Camera::SetTrigger(int& trigger_source, int& polarity) {
   TriggerModeInfo trigger_mode_info;
   PgrWarn(camera_.GetTriggerModeInfo(&trigger_mode_info),
           "Failed to get trigger mode info");
   if (!trigger_mode_info.present) {
     // Camera doesn't support external triggering, so set enable_trigger to
     // false
-    ROS_WARN("Camera does not support triggering");
-    enable_trigger = false;
+    ROS_WARN("Camera does not support trigger");
+    trigger_source = Flea3Dyn_ts_off;
     return;
   }
 
   TriggerMode trigger_mode;
-  PgrWarn(camera_.GetTriggerMode(&trigger_mode), "Failed to get trigger mode");
-  trigger_mode.onOff = enable_trigger;
+
+  if (trigger_source == Flea3Dyn_ts_off) {
+    trigger_mode.onOff = false;
+    PgrWarn(camera_.SetTriggerMode(&trigger_mode),
+            "Failed to set trigger mode");
+    ROS_INFO("Turning off trigger mode");
+    return;
+  }
+
+  trigger_mode.onOff = true;
   trigger_mode.mode = 0;
   trigger_mode.parameter = 0;
   // Source 7 means software trigger
-  trigger_mode.source = 7;
+  trigger_mode.source = trigger_source;
+  trigger_mode.polarity = polarity;
   PgrWarn(camera_.SetTriggerMode(&trigger_mode), "Failed to set trigger mode");
-  PgrWarn(camera_.GetTriggerMode(&trigger_mode), "Failed to get trigger mode");
-  enable_trigger = trigger_mode.onOff;
+}
+
+void Flea3Camera::SetStrobe(int& strobe_control, int& polarity) {
+  StrobeInfo strobe_info;
+  PgrWarn(camera_.GetStrobeInfo(&strobe_info), "Failed to get strobe info");
+  //  if (!strobe_info.present) {
+  //    ROS_WARN("Camera does not support strobe");
+  //    strobe_control = Flea3Dyn_sc_off;
+  //  }
+
+  StrobeControl strobe;
+  strobe.source = 2;
+  if (strobe_control == Flea3Dyn_sc_off) {
+    strobe.onOff = false;
+  } else {
+    // TODO: turn off previous turned on strobe control
+    strobe.onOff = true;
+    strobe.polarity = polarity;
+    strobe.duration = 0;
+  }
+  PgrWarn(camera_.SetStrobe(&strobe), "Failed to set strobe");
 }
 
 bool Flea3Camera::PollForTriggerReady() {
@@ -427,7 +462,7 @@ bool Flea3Camera::FireSoftwareTrigger() {
 }
 
 bool Flea3Camera::RequestSingle() {
-  if (config_.enable_trigger) {
+  if (config_.trigger_source >= 0) {
     if (PollForTriggerReady()) {
       return FireSoftwareTrigger();
     }
