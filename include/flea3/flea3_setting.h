@@ -26,6 +26,7 @@ float GetCameraFrameRate(Camera& camera);
 float GetCameraTemperature(Camera& camera);
 FrameRate GetMaxFrameRate(Camera& camera, const VideoMode& video_mode);
 std::pair<VideoMode, FrameRate> GetVideoModeAndFrameRate(Camera& camera);
+Format7ImageSettings GetFormat7ImageSettings(Camera& camera);
 
 void SetProperty(Camera& camera, const PropertyType& prop_type, bool on,
                  bool auto_on, double value);
@@ -42,7 +43,7 @@ bool IsVideoModeAndFrameRateSupported(Camera& camera,
                                       const VideoMode& video_mode,
                                       const FrameRate& frame_rate);
 
-int CenterRoi(int& size, int max_size, int step);
+std::pair<int, int> CenterRoi(int size, int max_size, int step);
 
 }  // namespace flea3
 

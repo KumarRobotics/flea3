@@ -7,6 +7,14 @@ namespace flea3 {
 
 using namespace FlyCapture2;
 
+unsigned hsb(unsigned i) {
+  unsigned c = 0;
+  while (i >>= 1) {
+    c++;
+  }
+  return c;
+}
+
 union AbsValueConversion {
   unsigned int uint_val;
   float float_val;
@@ -134,36 +142,27 @@ void Flea3Camera::Configure(Config& config) {
   config_ = config;
 }
 
+// TODO: simplify logic here
 void Flea3Camera::SetVideoMode(int& video_mode, int& format7_mode,
                                int& pixel_format, int& width, int& height) {
-  // Get the default video mode and frame rate for this camera
-  const auto curr_video_mode_frame_rate_pg = GetVideoModeAndFrameRate(camera_);
-
-  auto video_mode_pg = static_cast<VideoMode>(video_mode);
-
-  bool is_video_mode_supported;
-  if (video_mode_pg == VIDEOMODE_FORMAT7) {
-    is_video_mode_supported = IsFormat7Supported(camera_);
-  } else {
-    is_video_mode_supported = IsVideoModeSupported(camera_, video_mode_pg);
-  }
-
-  if (!is_video_mode_supported) {
-    ROS_WARN_STREAM("Selected video mode not supported: " << video_mode_pg);
-    // If the desired video mode is not supported, we fall back to the current
-    // video mode, we dont simply return here because at the begining, dynamic
-    // reconfigure has no idea what's the available video mode, or if the video
-    // mode is format 7
-    video_mode_pg = curr_video_mode_frame_rate_pg.first;
-  }
-
-  // Actual configuration
-  if (video_mode_pg == VIDEOMODE_FORMAT7) {
+  // Try setting video mode based on video_mode, fail silently
+  if (video_mode == Flea3Dyn_format7) {
     SetFormat7VideoMode(format7_mode, pixel_format, width, height);
-    video_mode = video_mode_pg;
   } else {
     SetStandardVideoMode(video_mode);
-    // These configs are not supported in standard video mode
+  }
+
+  // Update params
+  const auto video_mode_and_frame_rate_pg = GetVideoModeAndFrameRate(camera_);
+  if (video_mode_and_frame_rate_pg.first == VIDEOMODE_FORMAT7) {
+    const auto fmt7_settings = GetFormat7ImageSettings(camera_);
+    pixel_format = hsb(fmt7_settings.pixelFormat);
+    width = fmt7_settings.width;
+    height = fmt7_settings.height;
+    format7_mode = fmt7_settings.mode;
+    video_mode = Flea3Dyn_format7;
+  } else {
+    video_mode = static_cast<int>(video_mode_and_frame_rate_pg.first);
     format7_mode = 0;
     pixel_format = 0;
     width = 0;
@@ -171,17 +170,11 @@ void Flea3Camera::SetVideoMode(int& video_mode, int& format7_mode,
   }
 }
 
-void Flea3Camera::SetFormat7VideoMode(int& format7_mode, int& pixel_format,
-                                      int& width, int& height) {
-  // Check if the required format 7 mode is supported
-  auto fmt7_mode_pg = static_cast<Mode>(format7_mode);
-  auto fmt7_info = GetFormat7Info(camera_, fmt7_mode_pg);
-  if (!fmt7_info.second) {
-    ROS_WARN("%s: Format7 mode [%d] is not supported, fall back to [%d]",
-             serial().c_str(), format7_mode, MODE_0);
-    fmt7_mode_pg = MODE_0;
-    fmt7_info = GetFormat7Info(camera_, fmt7_mode_pg);
-  }
+void Flea3Camera::SetFormat7VideoMode(int format7_mode, int pixel_format,
+                                      int width, int height) {
+  const auto fmt7_mode_pg = static_cast<Mode>(format7_mode);
+  const auto fmt7_info = GetFormat7Info(camera_, fmt7_mode_pg);
+  if (!fmt7_info.second) return;
 
   Format7ImageSettings fmt7_settings;
   fmt7_settings.mode = fmt7_mode_pg;
@@ -195,30 +188,17 @@ void Flea3Camera::SetFormat7VideoMode(int& format7_mode, int& pixel_format,
 
   // Validate the settings
   const auto fmt7_packet_info = IsFormat7SettingsValid(camera_, fmt7_settings);
-  if (fmt7_packet_info.second) {
-    // TODO: use PgrWarn instead?
-    const auto error = camera_.SetFormat7Configuration(
-        &fmt7_settings, fmt7_packet_info.first.recommendedBytesPerPacket);
-    if (error == PGRERROR_OK) {
-      format7_mode = fmt7_mode_pg;
-    } else {
-      ROS_WARN("%s: Failed to set format7 mode [%d]", serial().c_str(),
-               fmt7_mode_pg);
-    }
-  } else {
-    ROS_WARN("Format 7 Setting is not valid");
-  }
+  if (!fmt7_packet_info.second) ROS_WARN("Format 7 Setting is not valid");
+  PgrWarn(camera_.SetFormat7Configuration(
+              &fmt7_settings, fmt7_packet_info.first.recommendedBytesPerPacket),
+          "Failed to set format7 mode");
 }
 
-void Flea3Camera::SetStandardVideoMode(int& video_mode) {
-  auto video_mode_pg = static_cast<VideoMode>(video_mode);
+void Flea3Camera::SetStandardVideoMode(int video_mode) {
+  const auto video_mode_pg = static_cast<VideoMode>(video_mode);
+  if (!IsVideoModeSupported(camera_, video_mode_pg)) return;
   const auto max_frame_rate_pg = GetMaxFrameRate(camera_, video_mode_pg);
   PgrWarn(camera_.SetVideoModeAndFrameRate(video_mode_pg, max_frame_rate_pg));
-
-  // Update video mode
-  FrameRate frame_rate_pg;
-  PgrWarn(camera_.GetVideoModeAndFrameRate(&video_mode_pg, &frame_rate_pg));
-  video_mode = video_mode_pg;
 }
 
 void Flea3Camera::SetFrameRate(double& frame_rate) {
@@ -374,14 +354,16 @@ void Flea3Camera::SetRawBayerOutput(bool& raw_bayer_output) {
 }
 
 void Flea3Camera::SetRoi(const Format7Info& format7_info,
-                         Format7ImageSettings& format7_settings, int& width,
-                         int& height) {
-  format7_settings.offsetX =
+                         Format7ImageSettings& format7_settings, int width,
+                         int height) {
+  const auto width_setting =
       CenterRoi(width, format7_info.maxWidth, format7_info.imageHStepSize);
-  format7_settings.width = width;
-  format7_settings.offsetY =
+  const auto height_setting =
       CenterRoi(height, format7_info.maxHeight, format7_info.imageVStepSize);
-  format7_settings.height = height;
+  format7_settings.width = width_setting.first;
+  format7_settings.offsetX = width_setting.second;
+  format7_settings.height = height_setting.first;
+  format7_settings.offsetY = height_setting.second;
 }
 
 void Flea3Camera::SetTrigger(int& trigger_source, int& polarity) {

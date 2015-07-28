@@ -172,6 +172,16 @@ std::pair<VideoMode, FrameRate> GetVideoModeAndFrameRate(Camera& camera) {
   return {video_mode, frame_rate};
 }
 
+Format7ImageSettings GetFormat7ImageSettings(Camera& camera) {
+  Format7ImageSettings fmt7_settings;
+  unsigned packet_size;
+  float percentage;
+  PgrWarn(
+      camera.GetFormat7Configuration(&fmt7_settings, &packet_size, &percentage),
+      "Failed to get format7 image settings");
+  return fmt7_settings;
+}
+
 float GetCameraTemperature(Camera& camera) {
   const auto prop = GetProperty(camera, TEMPERATURE);
   // It returns values of 10 * K
@@ -240,12 +250,13 @@ std::pair<Format7PacketInfo, bool> IsFormat7SettingsValid(
   return {fmt7_packet_info, valid};
 }
 
-int CenterRoi(int& size, int max_size, int step) {
+std::pair<int, int> CenterRoi(int size, int max_size, int step) {
   if (size == 0 || size > max_size) size = max_size;
   // size should be a multiple of step
   size = size / step * step;
+  const int offset = (max_size - size) / 2;
   // Return offset for centering roi
-  return (max_size - size) / 2;
+  return std::make_pair(size, offset);
 }
 
 }  // namespace flea3

@@ -41,11 +41,11 @@ class Flea3Camera {
   // Video Mode
   void SetVideoMode(int& video_mode, int& format7_mode, int& pixel_format,
                     int& width, int& height);
-  void SetFormat7VideoMode(int& format7_mode, int& pixel_format, int& width,
-                           int& height);
-  void SetStandardVideoMode(int& video_mode);
+  void SetFormat7VideoMode(int format7_mode, int pixel_format, int width,
+                           int height);
+  void SetStandardVideoMode(int video_mode);
   void SetRoi(const Format7Info& format7_info,
-              Format7ImageSettings& format7_settings, int& width, int& height);
+              Format7ImageSettings& format7_settings, int width, int height);
 
   // Frame Rate
   void SetFrameRate(double& frame_rate);
