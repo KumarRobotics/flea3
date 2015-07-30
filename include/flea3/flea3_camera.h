@@ -29,7 +29,7 @@ class Flea3Camera {
   void StarCapture();
   void StopCapture();
   bool RequestSingle();
-  double getShutterTimeSec();
+  double GetShutterTimeSec();
 
  private:
   std::string AvailableDevice();

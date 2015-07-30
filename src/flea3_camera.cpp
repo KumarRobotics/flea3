@@ -465,12 +465,12 @@ bool Flea3Camera::RequestSingle() {
   return true;
 }
 
-double Flea3Camera::getShutterTimeSec() {
+double Flea3Camera::GetShutterTimeSec() {
   if (config_.auto_shutter) {
     AbsValueConversion abs_val;
-    // Register for abs_shutter_val
+    // Register for abs_shutter_val, which is already in second
     camera_.ReadRegister(0x918, &abs_val.uint_val);
-    return abs_val.float_val / 1000.0;
+    return abs_val.float_val;
   }
   return config_.shutter_ms / 1000.0;
 }
