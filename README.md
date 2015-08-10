@@ -65,6 +65,12 @@ FlyCapture2 can be downloaded from [here](http://www.ptgrey.com/support/download
 
 ## Known Issues
 
+## Flycapture 2.8.3 issue
+
+Flycapture 2.8.3 fucked up pretty badly. So don't upgrade to it.
+
+The issue is that when launching the second camera, the `Camera.StartCapture()` method creates a new thread and never exits, thus blocking the following acquisition. PtGrey is working on a new release to fix this issue. Meanwhile, just use FlyCapture SDK 2.7.3.
+
 ## Optimizing USB performance
 
 Here is an [article](http://www.matrix-vision.com/manuals/mvBlueFOX3/mvBC_page_quickstart.html#mvBC_subsubsection_quickstart_linux_requirements_optimising_usb) from matrix-vision on how to optimize USB performance.
