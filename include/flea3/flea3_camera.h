@@ -26,7 +26,7 @@ class Flea3Camera {
 
   bool Connect();
   void Configure(Config& config);
-  void StarCapture();
+  void StartCapture();
   void StopCapture();
   bool RequestSingle();
   double GetShutterTimeSec();

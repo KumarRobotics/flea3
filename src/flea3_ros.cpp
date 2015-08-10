@@ -28,7 +28,7 @@ void Flea3Ros::PublishImageMetadata(const ros::Time& time) {
 
 void Flea3Ros::Stop() { flea3_.StopCapture(); }
 
-void Flea3Ros::Start() { flea3_.StarCapture(); }
+void Flea3Ros::Start() { flea3_.StartCapture(); }
 
 bool Flea3Ros::RequestSingle() { return flea3_.RequestSingle(); }
 

@@ -21,7 +21,6 @@ union AbsValueConversion {
 };
 
 Flea3Camera::Flea3Camera(const std::string& serial) : serial_(serial) {
-  //  frame_rates_ = {1.875, 3.75, 7.5, 15, 30, 60, 120, 240};
   // Wait for camera to power up
   int num_tries{3};
   while (num_tries > 0) {
@@ -45,22 +44,21 @@ bool Flea3Camera::Connect() {
   PGRGuid guid;
   PgrError(bus_manager_.GetCameraFromSerialNumber(serial_id(), &guid),
            serial_ + " not found. " + AvailableDevice());
-  bool success;
-  try {
-    PgrError(camera_.Connect(&guid), "Failed to connect to camera");
+
+  const auto error = camera_.Connect(&guid);
+  if (error == PGRERROR_OK) {
     // This is a total hack, it exists because one of my camera doesn't enable
     // auto white balance by default. You have to write to its presence register
     // to bring it online.
     EnableAutoWhiteBalance();
     // For now this only set the grab timeout
     SetConfiguration();
-    success = true;
-  } catch (const std::exception& e) {
+    return true;
+  } else {
     ROS_INFO("Failed to connect to camera: %s. Try again. | %s",
-             serial().c_str(), e.what());
-    success = false;
+             serial().c_str(), error.GetDescription());
+    return false;
   }
-  return success;
 }
 
 void Flea3Camera::SetConfiguration() {
@@ -69,7 +67,7 @@ void Flea3Camera::SetConfiguration() {
   // Set the grab timeout to 1 seconds
   config.grabTimeout = 1000;
   // Try 2 times before declaring failure
-  config.registerTimeoutRetries = 3;
+  config.registerTimeoutRetries = 2;
   // NOTE: Cannot do this here, will block all the following settings on format7
   // Maybe put this in configure
   //  config.highPerformanceRetrieveBuffer = true;
@@ -93,7 +91,7 @@ std::string Flea3Camera::AvailableDevice() {
   return devices;
 }
 
-void Flea3Camera::StarCapture() {
+void Flea3Camera::StartCapture() {
   if (camera_.IsConnected() && !capturing_) {
     PgrError(camera_.StartCapture(), "Failed to start capture");
     capturing_ = true;

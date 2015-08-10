@@ -35,12 +35,12 @@
 
   <!-- Node -->
   <node pkg="flea3" type="flea3_single_node" name="$(arg camera)" output="$(arg output)">
-  	<param name="identifier" type="string" value="$(arg serial)"/>
-  	<param name="frame_id" type="string" value="$(arg frame_id)"/>
-  	<param name="camera_name" type="string" value="$(arg camera_name)"/>
-  	<param name="calib_url" type="string" value="$(arg calib_url)"/>
+    <param name="identifier" type="string" value="$(arg serial)"/>
+    <param name="frame_id" type="string" value="$(arg frame_id)"/>
+    <param name="camera_name" type="string" value="$(arg camera_name)"/>
+    <param name="calib_url" type="string" value="$(arg calib_url)"/>
 
-  	<param name="fps" type="double" value="$(arg fps)"/>
+    <param name="fps" type="double" value="$(arg fps)"/>
     <param name="video_mode" type="int" value="$(arg video_mode)"/>
     <param name="exposure" type="bool" value="$(arg exposure)"/>
     <param name="auto_exposure" type="bool" value="$(arg auto_exposure)"/>
@@ -58,23 +58,23 @@
 
   <!-- Extras -->
   <include file="$(find camera_base)/launch/extras.launch">
-  	<arg name="camera" value="$(arg camera)"/>
-  	<arg name="proc" value="$(arg proc)"/>
-  	<arg name="view" value="$(arg view)"/>
-  	<arg name="image" value="$(arg image)"/>
+    <arg name="camera" value="$(arg camera)"/>
+    <arg name="proc" value="$(arg proc)"/>
+    <arg name="view" value="$(arg view)"/>
+    <arg name="image" value="$(arg image)"/>
   </include>
 
   <!-- Calib -->
   <group if="$(arg calib)">
-  	<arg name="pattern" default="chessboard"/>
-  	<arg name="size"/>
-  	<arg name="square"/>
-  	<arg name="num_dist_coeff" default="2"/>
-  	<node pkg="camera_calibration" type="cameracalibrator.py"
-  		name="calibrator" output="screen"
-  		args="-p $(arg pattern) -s $(arg size) -q $(arg square)
-  		-k $(arg num_dist_coeff)
-  		image:=/$(arg camera)/image_raw camera:=/$(arg camera)">
-  	</node>
+    <arg name="pattern" default="chessboard"/>
+    <arg name="size"/>
+    <arg name="square"/>
+    <arg name="num_dist_coeff" default="2"/>
+    <node pkg="camera_calibration" type="cameracalibrator.py"
+      name="calibrator" output="screen"
+      args="-p $(arg pattern) -s $(arg size) -q $(arg square)
+            -k $(arg num_dist_coeff)
+            image:=/$(arg camera)/image_raw camera:=/$(arg camera)">
+    </node>
   </group>
 </launch>
