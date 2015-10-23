@@ -50,7 +50,7 @@ bool Flea3Camera::Connect() {
     // This is a total hack, it exists because one of my camera doesn't enable
     // auto white balance by default. You have to write to its presence register
     // to bring it online.
-    EnableAutoWhiteBalance();
+    //    EnableAutoWhiteBalance();
     // For now this only set the grab timeout
     SetConfiguration();
     return true;
@@ -134,7 +134,7 @@ void Flea3Camera::Configure(Config& config) {
   // Trigger
   SetTrigger(config.trigger_source, config.trigger_polarity);
   // Strobe
-  SetStrobe(config.strobe_control, config.strobe_polarity);
+  //  SetStrobe(config.strobe_control, config.strobe_polarity);
 
   // Save this config
   config_ = config;
@@ -364,7 +364,7 @@ void Flea3Camera::SetRoi(const Format7Info& format7_info,
   format7_settings.offsetY = height_setting.second;
 }
 
-void Flea3Camera::SetTrigger(int& trigger_source, int& polarity) {
+void Flea3Camera::SetTrigger(int& trigger_source, int& trigger_polarity) {
   TriggerModeInfo trigger_mode_info;
   PgrWarn(camera_.GetTriggerModeInfo(&trigger_mode_info),
           "Failed to get trigger mode info");
@@ -394,8 +394,11 @@ void Flea3Camera::SetTrigger(int& trigger_source, int& polarity) {
   trigger_mode.parameter = 0;
   // Source 7 means software trigger
   trigger_mode.source = trigger_source;
-  trigger_mode.polarity = polarity;
+  trigger_mode.polarity = trigger_polarity;
   PgrWarn(camera_.SetTriggerMode(&trigger_mode), "Failed to set trigger mode");
+  PgrWarn(camera_.GetTriggerMode(&trigger_mode), "Failed to get trigger mode");
+  trigger_source = trigger_mode.source;
+  trigger_polarity = trigger_mode.polarity;
 }
 
 void Flea3Camera::SetStrobe(int& strobe_control, int& polarity) {
@@ -454,7 +457,7 @@ bool Flea3Camera::FireSoftwareTrigger() {
 }
 
 bool Flea3Camera::RequestSingle() {
-  if (config_.trigger_source >= 0) {
+  if (config_.trigger_source == Flea3Dyn_ts_sw) {
     if (PollForTriggerReady()) {
       return FireSoftwareTrigger();
     }

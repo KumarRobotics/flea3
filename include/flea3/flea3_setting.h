@@ -2,6 +2,7 @@
 #define FLEA3_SETTING_H_
 
 #include <flycapture/FlyCapture2.h>
+#include <string>
 
 namespace flea3 {
 

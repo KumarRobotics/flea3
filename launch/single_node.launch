@@ -23,8 +23,8 @@
   <arg name="trigger_polarity" default="0"/>
   <arg name="strobe_control" default="-1"/>
   <arg name="strobe_polarity" default="0"/>
-  <arg name="white_balance" default="true"/>
-  <arg name="auto_white_balance" default="true"/>
+  <arg name="white_balance" default="false"/>
+  <arg name="auto_white_balance" default="false"/>
 
   <!-- Node Settings -->
   <arg name="output" default="screen"/>
