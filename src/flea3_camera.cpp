@@ -134,7 +134,7 @@ void Flea3Camera::Configure(Config& config) {
   // Trigger
   SetTrigger(config.trigger_source, config.trigger_polarity);
   // Strobe
-  //  SetStrobe(config.strobe_control, config.strobe_polarity);
+  SetStrobe(config.strobe_control, config.strobe_polarity);
 
   // Save this config
   config_ = config;
