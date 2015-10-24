@@ -42,6 +42,7 @@ add_library(${PROJECT_NAME}
     src/flea3_ros.cpp
     src/single/single_node.cpp
     src/stereo/stereo_node.cpp
+    src/single/single_nodelet.cpp
     )
 target_link_libraries(
     ${PROJECT_NAME}
