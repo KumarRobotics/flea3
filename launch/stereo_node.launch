@@ -4,7 +4,7 @@
 
     <!-- Camera Settings -->
     <arg name="left" default="14472242"/>
-    <arg name="right" default="13344889"/>
+    <arg name="right" default="15322735"/>
     <arg name="left_camera_name" default="pg_$(arg left)"/>
     <arg name="right_camera_name" default="pg_$(arg right)"/>
     <arg name="left_calib_url" default="file://${ROS_HOME}/camera_info/$(arg left_camera_name).yaml"/>
@@ -14,12 +14,20 @@
     <arg name="frame_id" default="$(arg camera)"/>
     <arg name="fps" default="$(arg rate)"/>
 
-    <arg name="video_mode" default="17"/>
-    <arg name="auto_exposure" default="false"/>
-    <arg name="auto_shutter" default="false"/>
-    <arg name="auto_gain" default="false"/>
-    <arg name="auto_white_balance" default="true"/>
-    <arg name="enable_trigger" default="true"/>
+    <arg name="video_mode" default="23"/>
+    <arg name="pixel_format" default="22"/>
+    <arg name="exposure" default="true"/>
+    <arg name="auto_exposure" default="true"/>
+    <arg name="auto_shutter" default="true"/>
+    <arg name="shutter_ms" default="10.0"/>
+    <arg name="auto_gain" default="true"/>
+    <arg name="gain_db" default="0.0"/>
+    <arg name="trigger_source" default="-1"/>
+    <arg name="trigger_polarity" default="0"/>
+    <arg name="strobe_control" default="-1"/>
+    <arg name="strobe_polarity" default="0"/>
+    <arg name="white_balance" default="false"/>
+    <arg name="auto_white_balance" default="false"/>
 
     <!-- Node Settings -->
     <arg name="output" default="screen"/>
@@ -40,11 +48,13 @@
         <param name="frame_id" type="string" value="$(arg frame_id)"/>
         <param name="fps" type="double" value="$(arg fps)"/>
         <param name="video_mode" type="int" value="$(arg video_mode)"/>
+        <param name="exposure" type="bool" value="$(arg exposure)"/>
         <param name="auto_exposure" type="bool" value="$(arg auto_exposure)"/>
         <param name="auto_shutter" type="bool" value="$(arg auto_shutter)"/>
+        <param name="shutter_ms" type="double" value="$(arg shutter_ms)"/>
         <param name="auto_gain" type="bool" value="$(arg auto_gain)"/>
-        <param name="auto_white_balance" type="bool" value="$(arg auto_white_balance)"/>
-        <param name="enable_trigger" type="bool" value="$(arg enable_trigger)"/>
+        <param name="gain_db" type="double" value="$(arg gain_db)"/>
+        <param name="trigger_source" type="int" value="$(arg trigger_source)"/>
     </node>
 
     <!-- Proc -->
