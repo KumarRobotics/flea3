@@ -3,7 +3,7 @@
     <arg name="rate" default="7.5"/>
 
     <!-- Camera Settings -->
-    <arg name="left" default="14472242"/>
+    <arg name="left" default="15322733"/>
     <arg name="right" default="15322735"/>
     <arg name="left_camera_name" default="pg_$(arg left)"/>
     <arg name="right_camera_name" default="pg_$(arg right)"/>

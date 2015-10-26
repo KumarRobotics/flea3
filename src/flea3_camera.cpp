@@ -131,10 +131,10 @@ void Flea3Camera::Configure(Config& config) {
   SetBrightness(config.brightness);
   SetGamma(config.gamma);
 
-  // Trigger
-  SetTrigger(config.trigger_source, config.trigger_polarity);
   // Strobe
   SetStrobe(config.strobe_control, config.strobe_polarity);
+  // Trigger
+  SetTrigger(config.trigger_source, config.trigger_polarity);
 
   // Save this config
   config_ = config;

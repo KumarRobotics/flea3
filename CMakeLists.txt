@@ -27,10 +27,11 @@ add_message_files(DIRECTORY msg
 generate_messages(DEPENDENCIES std_msgs)
 
 catkin_package(
-    CATKIN_DEPENDS message_runtime std_msgs
+    INCLUDE_DIRS include ${FlyCapture2_INCLUDE_DIRS}
+    LIBRARIES ${PROJECT_NAME} ${FlyCapture2_LIBRARIES}
+    CATKIN_DEPENDS message_runtime
     )
 
-# We don't include FlyCapture2 because it is installed to /usr/include
 include_directories(
     include
     ${catkin_INCLUDE_DIRS}
@@ -50,17 +51,14 @@ target_link_libraries(
     ${FlyCapture2_LIBRARIES}
     )
 
-add_executable(flea3_single_node src/single/single_main.cpp)
-target_link_libraries(flea3_single_node ${PROJECT_NAME})
+add_executable(${PROJECT_NAME}_single_node src/single/single_main.cpp)
+target_link_libraries(${PROJECT_NAME}_single_node ${PROJECT_NAME})
 
-add_executable(flea3_stereo_node src/stereo/stereo_main.cpp)
-target_link_libraries(flea3_stereo_node ${PROJECT_NAME})
+add_executable(${PROJECT_NAME}_stereo_node src/stereo/stereo_main.cpp)
+target_link_libraries(${PROJECT_NAME}_stereo_node ${PROJECT_NAME})
 
-add_executable(flea3_list_cameras src/list_cameras.cpp)
-target_link_libraries(flea3_list_cameras ${PROJECT_NAME})
-
-add_executable(async_trigger src/flycapture/async_trigger.cpp)
-target_link_libraries(async_trigger ${FlyCapture2_LIBRARIES})
+add_executable(${PROJECT_NAME}_list_cameras src/list_cameras.cpp)
+target_link_libraries(${PROJECT_NAME}_list_cameras ${PROJECT_NAME})
 
 add_dependencies(${PROJECT_NAME}
     ${catkin_EXPORTED_TARGETS}
@@ -69,29 +67,29 @@ add_dependencies(${PROJECT_NAME}
     ${${PROJECT_NAME}_EXPORTED_TARGETS}
     )
 
-install(TARGETS flea3_single_node flea3_stereo_node flea3_list_cameras async_trigger
-  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-)
+# install(TARGETS flea3_single_node flea3_stereo_node flea3_list_cameras
+#   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+#   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+#   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+# )
 
-install(DIRECTORY include/${PROJECT_NAME}/
-  DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
-  FILES_MATCHING PATTERN "*.h"
-  PATTERN "*.*~" EXCLUDE
-)
+# install(DIRECTORY include/${PROJECT_NAME}/
+#   DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
+#   FILES_MATCHING PATTERN "*.h"
+#   PATTERN "*.*~" EXCLUDE
+# )
 
-install(DIRECTORY msg/
-  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/msg
-  PATTERN "*.*~" EXCLUDE
-)
+# install(DIRECTORY msg/
+#   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/msg
+#   PATTERN "*.*~" EXCLUDE
+# )
 
-install(DIRECTORY cfg/
-  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/cfg
-  PATTERN "*.*~" EXCLUDE
-)
+# install(DIRECTORY cfg/
+#   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/cfg
+#   PATTERN "*.*~" EXCLUDE
+# )
 
-install(DIRECTORY launch/
-  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch
-  PATTERN "*.*~" EXCLUDE
-)
+# install(DIRECTORY launch/
+#   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch
+#   PATTERN "*.*~" EXCLUDE
+# )
