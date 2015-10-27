@@ -39,6 +39,7 @@ std::string BayerFormatToEncoding(const BayerTileFormat& bayer_format,
         return MONO16;
     }
   }
+  return MONO8;
 }
 
 std::string PixelFormatToEncoding(unsigned bits_per_pixel) {
