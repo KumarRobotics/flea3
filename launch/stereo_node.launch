@@ -3,8 +3,8 @@
     <arg name="rate" default="7.5"/>
 
     <!-- Camera Settings -->
-    <arg name="left" default="15322733"/>
-    <arg name="right" default="15322735"/>
+    <arg name="left" default="15322735"/>
+    <arg name="right" default="15322733"/>
     <arg name="left_camera_name" default="pg_$(arg left)"/>
     <arg name="right_camera_name" default="pg_$(arg right)"/>
     <arg name="left_calib_url" default="file://${ROS_HOME}/camera_info/$(arg left_camera_name).yaml"/>
@@ -22,7 +22,7 @@
     <arg name="shutter_ms" default="10.0"/>
     <arg name="auto_gain" default="true"/>
     <arg name="gain_db" default="0.0"/>
-    <arg name="trigger_source" default="-1"/>
+    <arg name="trigger_source" default="7"/>
     <arg name="trigger_polarity" default="0"/>
     <arg name="strobe_control" default="-1"/>
     <arg name="strobe_polarity" default="0"/>
