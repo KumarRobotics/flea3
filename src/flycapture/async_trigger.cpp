@@ -130,7 +130,7 @@ bool FireSoftwareTrigger(Camera* pCam) {
 int main(int /*argc*/, char** /*argv*/) {
   PrintBuildInfo();
 
-  const int k_numImages = 10;
+  const int k_numImages = 2;
 
   Error error;
 
@@ -271,7 +271,7 @@ int main(int /*argc*/, char** /*argv*/) {
   }
 
   // Set the grab timeout to 5 seconds
-  config.grabTimeout = 5000;
+  config.grabTimeout = 1000;
 
   // Set the camera configuration
   error = cam.SetConfiguration(&config);
@@ -336,20 +336,34 @@ int main(int /*argc*/, char** /*argv*/) {
     printf("Press the Enter key to initiate a software trigger.\n");
     getchar();
 
+    printf("waiting for buffer 1\n");
+    error = cam.WaitForBufferEvent(&image, 0);
+    if (error != PGRERROR_OK) {
+      PrintError(error);
+    }
+    printf("after waiting buffer 1\n");
+
     // Fire software trigger
     bool retVal = FireSoftwareTrigger(&cam);
     if (!retVal) {
       printf("\nError firing software trigger!\n");
       return -1;
     }
+    usleep(2e6);
 #endif
 
+    printf("waiting for buffer 2\n");
+    cam.WaitForBufferEvent(&image, 0);
+    printf("after waiting buffer 2\n");
+
     // Grab image
+    printf("calling retrieve buffer\n");
     error = cam.RetrieveBuffer(&image);
     if (error != PGRERROR_OK) {
       PrintError(error);
-      break;
     }
+    printf("after retrieve buffer\n");
+
     printf(".\n");
   }
 

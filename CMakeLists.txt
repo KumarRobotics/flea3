@@ -60,6 +60,9 @@ target_link_libraries(${PROJECT_NAME}_stereo_node ${PROJECT_NAME})
 add_executable(${PROJECT_NAME}_list_cameras src/list_cameras.cpp)
 target_link_libraries(${PROJECT_NAME}_list_cameras ${PROJECT_NAME})
 
+add_executable(${PROJECT_NAME}_async_trigger src/flycapture/async_trigger.cpp)
+target_link_libraries(${PROJECT_NAME}_async_trigger ${PROJECT_NAME})
+
 add_dependencies(${PROJECT_NAME}
     ${catkin_EXPORTED_TARGETS}
     ${PROJECT_NAME}_gencfg

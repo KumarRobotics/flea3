@@ -20,8 +20,7 @@ class Flea3Camera {
   const std::string& serial() const { return serial_; }
   const unsigned serial_id() const { return std::atoi(serial_.c_str()); }
 
-  bool GrabImage(sensor_msgs::Image& image_msg,
-                 sensor_msgs::CameraInfo& cinfo_msg);
+  bool GrabImage(sensor_msgs::Image& image_msg);
   void GrabImageMetadata(flea3::ImageMetadata& image_metadata_msg);
 
   bool Connect();

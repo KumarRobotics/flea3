@@ -15,8 +15,7 @@ class Flea3Ros : public camera_base::CameraRosBase {
 
   bool RequestSingle();
 
-  bool Grab(const sensor_msgs::ImagePtr& image_msg,
-            const sensor_msgs::CameraInfoPtr& cinfo_msg) override;
+  bool Grab(const sensor_msgs::ImagePtr& image_msg) override;
   void PublishImageMetadata(const ros::Time& time);
 
   void Stop();

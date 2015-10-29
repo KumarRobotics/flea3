@@ -207,8 +207,7 @@ void Flea3Camera::SetFrameRate(double& frame_rate) {
   }
 }
 
-bool Flea3Camera::GrabImage(sensor_msgs::Image& image_msg,
-                            sensor_msgs::CameraInfo& cinfo_msg) {
+bool Flea3Camera::GrabImage(sensor_msgs::Image& image_msg) {
   if (!(camera_.IsConnected() && capturing_)) return false;
 
   Image image;
