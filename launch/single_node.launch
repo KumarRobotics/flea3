@@ -11,6 +11,8 @@
   <arg name="calib_url" default="file://${ROS_HOME}/camera_info/$(arg camera_name).yaml"/>
   <arg name="fps" default="$(arg rate)"/>
 
+  <arg name="width" default="0"/>
+  <arg name="height" default="0"/>
   <arg name="video_mode" default="23"/>
   <arg name="pixel_format" default="22"/>
   <arg name="exposure" default="true"/>
@@ -54,6 +56,8 @@
     <param name="strobe_polarity" type="int" value="$(arg strobe_polarity)"/>
     <param name="white_balance" type="bool" value="$(arg white_balance)"/>
     <param name="auto_white_balance" type="bool" value="$(arg auto_white_balance)"/>
+    <param name="width" type="int" value="$(arg width)"/>
+    <param name="height" type="int" value="$(arg height)"/>
   </node>
 
   <!-- Extras -->

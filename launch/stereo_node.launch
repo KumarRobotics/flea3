@@ -14,6 +14,8 @@
     <arg name="frame_id" default="$(arg camera)"/>
     <arg name="fps" default="$(arg rate)"/>
 
+    <arg name="width" default="0"/>
+    <arg name="height" default="0"/>
     <arg name="video_mode" default="23"/>
     <arg name="pixel_format" default="22"/>
     <arg name="exposure" default="true"/>
@@ -55,6 +57,8 @@
         <param name="auto_gain" type="bool" value="$(arg auto_gain)"/>
         <param name="gain_db" type="double" value="$(arg gain_db)"/>
         <param name="trigger_source" type="int" value="$(arg trigger_source)"/>
+        <param name="width" type="int" value="$(arg width)"/>
+        <param name="height" type="int" value="$(arg height)"/>
     </node>
 
     <!-- Proc -->
