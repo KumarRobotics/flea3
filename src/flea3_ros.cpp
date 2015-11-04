@@ -4,10 +4,7 @@
 namespace flea3 {
 
 Flea3Ros::Flea3Ros(const ros::NodeHandle& pnh, const std::string& prefix)
-    : CameraRosBase(pnh, prefix),
-      flea3_(identifier()),
-      pnh_(pnh),
-      image_metadata_pub_(pnh_.advertise<ImageMetadata>("image_metadata", 1)) {
+    : CameraRosBase(pnh, prefix), flea3_(identifier()), pnh_(pnh) {
   SetHardwareId(flea3_.serial());
 }
 
@@ -17,13 +14,13 @@ bool Flea3Ros::Grab(const sensor_msgs::ImagePtr& image_msg) {
   return flea3_.GrabImage(*image_msg);
 }
 
-void Flea3Ros::PublishImageMetadata(const ros::Time& time) {
-  auto image_metadata_msg = boost::make_shared<ImageMetadata>();
-  flea3_.GrabImageMetadata(*image_metadata_msg);
-  image_metadata_msg->header.stamp = time;
-  image_metadata_msg->header.frame_id = frame_id();
-  image_metadata_pub_.publish(image_metadata_msg);
-}
+// void Flea3Ros::PublishImageMetadata(const ros::Time& time) {
+//  auto image_metadata_msg = boost::make_shared<ImageMetadata>();
+//  flea3_.GrabImageMetadata(*image_metadata_msg);
+//  image_metadata_msg->header.stamp = time;
+//  image_metadata_msg->header.frame_id = frame_id();
+//  image_metadata_pub_.publish(image_metadata_msg);
+//}
 
 void Flea3Ros::Stop() { flea3_.StopCapture(); }
 

@@ -24,7 +24,7 @@ class Flea3Ros : public camera_base::CameraRosBase {
  private:
   Flea3Camera flea3_;
   ros::NodeHandle pnh_;
-  ros::Publisher image_metadata_pub_;
+  //  ros::Publisher image_metadata_pub_;
 };
 
 }  // namespace flea3
