@@ -10,12 +10,7 @@ find_package(catkin REQUIRED COMPONENTS
     roscpp nodelet camera_base message_generation std_msgs
     )
 
-find_library(FlyCapture2_LIBRARIES flycapture)
-if(FlyCapture2_LIBRARIES)
-    message(STATUS "FlyCapture2 libraries found: " ${FlyCapture2_LIBRARIES})
-else()
-    message(STATUS "FlyCapture2 libraries not found")
-endif()
+find_package(FlyCapture2 REQUIRED)
 
 # Dynamic reconfigure
 generate_dynamic_reconfigure_options(cfg/Flea3Dyn.cfg)
@@ -35,6 +30,7 @@ catkin_package(
 include_directories(
     include
     ${catkin_INCLUDE_DIRS}
+    ${FlyCapture2_INCLUDE_DIRS}
     )
 
 add_library(${PROJECT_NAME}
