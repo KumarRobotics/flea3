@@ -10,7 +10,8 @@ Flea3Ros::Flea3Ros(const ros::NodeHandle& pnh, const std::string& prefix)
 
 Flea3Camera& Flea3Ros::camera() { return flea3_; }
 
-bool Flea3Ros::Grab(const sensor_msgs::ImagePtr& image_msg) {
+bool Flea3Ros::Grab(const sensor_msgs::ImagePtr& image_msg,
+                    const sensor_msgs::CameraInfoPtr& cinfo_msg) {
   return flea3_.GrabImage(*image_msg);
 }
 
