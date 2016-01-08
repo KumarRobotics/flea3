@@ -88,7 +88,7 @@ find_path(FlyCapture2_INCLUDE_DIR
     NAMES flycapture/FlyCapture2.h
     PATHS ${FlyCapture2_INCLUDE_DIR_HINTS}
     ${FlyCapture2_CHECK_INCLUDE_DIRS}
-    NO_DEFAULT_PATH)
+    )
 if(NOT FlyCapture2_INCLUDE_DIR OR NOT EXISTS ${FlyCapture2_INCLUDE_DIR})
     FlyCapture2_REPORT_NOT_FOUND(
         "Could not find flycapture include directory, set FlyCapture2_INCLUDE_DIR to "
@@ -103,7 +103,7 @@ find_library(FlyCapture2_LIBRARY
     NAMES libflycapture.so
     PATHS ${FlyCapture2_LIBRARY_DIR_HINTS}
     ${FlyCapture2_CHECK_LIBRARY_DIRS}
-    NO_DEFAULT_PATH)
+    )
 if(NOT FlyCapture2_LIBRARY OR NOT EXISTS ${FlyCapture2_LIBRARY})
     FlyCapture2_REPORT_NOT_FOUND(
         "Could not find flycapture library, set FlyCapture2_LIBRARY "
