@@ -5,7 +5,7 @@
 #include "flea3/Flea3DynConfig.h"
 #include <sensor_msgs/Image.h>
 #include <sensor_msgs/CameraInfo.h>
-#include "flea3/ImageMetadata.h"
+//#include "flea3/ImageMetadata.h"
 
 namespace flea3 {
 using namespace FlyCapture2;
@@ -21,7 +21,7 @@ class Flea3Camera {
   const unsigned serial_id() const { return std::atoi(serial_.c_str()); }
 
   bool GrabImage(sensor_msgs::Image& image_msg);
-  void GrabImageMetadata(flea3::ImageMetadata& image_metadata_msg);
+//  void GrabImageMetadata(flea3::ImageMetadata& image_metadata_msg);
 
   bool Connect();
   void Configure(Config& config);

@@ -16,10 +16,10 @@ find_package(FlyCapture2 REQUIRED)
 generate_dynamic_reconfigure_options(cfg/Flea3Dyn.cfg)
 
 # Message
-add_message_files(DIRECTORY msg
-    FILES ImageMetadata.msg
-    )
-generate_messages(DEPENDENCIES std_msgs)
+#add_message_files(DIRECTORY msg
+#    FILES ImageMetadata.msg
+#    )
+#generate_messages(DEPENDENCIES std_msgs)
 
 catkin_package(
     INCLUDE_DIRS include ${FlyCapture2_INCLUDE_DIRS}
