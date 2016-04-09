@@ -1,5 +1,4 @@
 #include "flea3/flea3_ros.h"
-#include "flea3/ImageMetadata.h"
 
 namespace flea3 {
 
