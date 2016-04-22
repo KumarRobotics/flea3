@@ -44,6 +44,7 @@
 
     <param name="fps" type="double" value="$(arg fps)"/>
     <param name="video_mode" type="int" value="$(arg video_mode)"/>
+    <param name="pixel_format" type="int" value="$(arg pixel_format)"/>
     <param name="exposure" type="bool" value="$(arg exposure)"/>
     <param name="auto_exposure" type="bool" value="$(arg auto_exposure)"/>
     <param name="auto_shutter" type="bool" value="$(arg auto_shutter)"/>
@@ -58,6 +59,8 @@
     <param name="auto_white_balance" type="bool" value="$(arg auto_white_balance)"/>
     <param name="width" type="int" value="$(arg width)"/>
     <param name="height" type="int" value="$(arg height)"/>
+    <param name="white_balance" type="bool" value="$(arg white_balance)" />
+    <param name="auto_white_balance" type="bool" value="$(arg auto_white_balance)" />
   </node>
 
   <!-- Extras -->
