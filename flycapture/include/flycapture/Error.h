@@ -16,7 +16,7 @@
 //=============================================================================
 
 //=============================================================================
-// $Id: Error.h 112716 2011-05-13 16:37:36Z soowei $
+// $Id: Error.h 244578 2015-08-21 23:30:57Z matthewg $
 //=============================================================================
 
 #ifndef PGR_FC2_ERROR_H
@@ -28,121 +28,121 @@
 
 namespace FlyCapture2
 {
-    struct ErrorImpl;
-  
-    /**
-     * The Error object represents an error that is returned from the library.
-     * Overloaded operators allow comparisons against other Error objects or
-     * the ErrorType enumeration.
-     */
-    class FLYCAPTURE2_API Error
-    {
-    public:
-        
-        /**
-         * Default constructor.
-         */
-        Error();
+	struct ErrorImpl;
 
-        /**
-         * Copy constructor.
-         */
-        Error( const Error& error );
+	/**
+	 * The Error object represents an error that is returned from the library.
+	 * Overloaded operators allow comparisons against other Error objects or
+	 * the ErrorType enumeration.
+	 */
+	class FLYCAPTURE2_API Error
+	{
+		public:
 
-        /**
-         * Default destructor.
-         */
-        virtual ~Error();
+			/**
+			 * Default constructor.
+			 */
+			Error();
 
-        /**
-         * Assignment operator.
-         */
-        virtual Error& operator=( const Error& error );
+			/**
+			 * Copy constructor.
+			 */
+			Error( const Error& error );
 
-        /**
-         * Equality operator.
-         */
-        virtual bool operator==( const Error& error ) const;
+			/**
+			 * Default destructor.
+			 */
+			virtual ~Error();
 
-        /**
-         * Equality operator. This overloaded operator compares the
-         * ErrorType of the Error against the specified ErrorType.
-         */
-        virtual bool operator==( const ErrorType& errorType ) const;
+			/**
+			 * Assignment operator.
+			 */
+			virtual Error& operator=( const Error& error );
 
-        /**
-         * Inequality operator.
-         */
-        virtual bool operator!=( const Error& error ) const;
+			/**
+			 * Equality operator.
+			 */
+			virtual bool operator==( const Error& error ) const;
 
-        /**
-         * Inequality operator. This overloaded operator compares the
-         * ErrorType of the Error against the specified ErrorType.
-         */
-        virtual bool operator!=( const ErrorType& errorType ) const;
+			/**
+			 * Equality operator. This overloaded operator compares the
+			 * ErrorType of the Error against the specified ErrorType.
+			 */
+			virtual bool operator==( const ErrorType& errorType ) const;
 
-        /**
-         * Retrieve the ErrorType of the error.
-         *
-         * @return The ErrorType of the error.
-         */
-        virtual ErrorType GetType() const;
+			/**
+			 * Inequality operator.
+			 */
+			virtual bool operator!=( const Error& error ) const;
 
-        /**
-         * Retrieve the top level description of the error that occurred.
-         *
-         * @return A string with the error description.
-         */
-        virtual const char* GetDescription() const;
+			/**
+			 * Inequality operator. This overloaded operator compares the
+			 * ErrorType of the Error against the specified ErrorType.
+			 */
+			virtual bool operator!=( const ErrorType& errorType ) const;
 
-        /**
-         * Retrieve the line number where the error originated.
-         *
-         * @return The line number.
-         */
-        virtual unsigned int GetLine() const;
+			/**
+			 * Retrieve the ErrorType of the error.
+			 *
+			 * @return The ErrorType of the error.
+			 */
+			virtual ErrorType GetType() const;
 
-        /**
-         * Retrieve the source filename where the error originated.
-         *
-         * @return A string with the file name.
-         */
-        virtual const char* GetFilename() const;
+			/**
+			 * Retrieve the top level description of the error that occurred.
+			 *
+			 * @return A string with the error description.
+			 */
+			virtual const char* GetDescription() const;
 
-        /**
-         * Get the error which caused this error.
-         *
-         * @return An error object representing the cause of this error.
-         */
-        virtual Error GetCause() const;
+			/**
+			 * Retrieve the line number where the error originated.
+			 *
+			 * @return The line number.
+			 */
+			virtual unsigned int GetLine() const;
 
-        /**
-         * Retrieve the build date of the file where the error originated.
-         *
-         * @return A string with the build date and time.
-         */
-        virtual const char* GetBuildDate() const;
+			/**
+			 * Retrieve the source filename where the error originated.
+			 *
+			 * @return A string with the file name.
+			 */
+			virtual const char* GetFilename() const;
 
-        /**
-         * Retrieve the support information. 
-         * It is not implemented in this release.
-         *
-         * @return A string containing support information.
-         */
-        virtual const char* CollectSupportInformation() const;
+			/**
+			 * Get the error which caused this error.
+			 *
+			 * @return An error object representing the cause of this error.
+			 */
+			virtual Error GetCause() const;
 
-        /**
-         * Print a formatted log trace to stderr.
-         */
-        virtual void PrintErrorTrace() const; 
+			/**
+			 * Retrieve the build date of the file where the error originated.
+			 *
+			 * @return A string with the build date and time.
+			 */
+			virtual const char* GetBuildDate() const;
 
-    protected:
+			/**
+			 * Retrieve the support information.
+			 * It is not implemented in this release.
+			 *
+			 * @return A string containing support information.
+			 */
+			virtual const char* CollectSupportInformation() const;
 
-    private:
-        ErrorType m_type;
-        ErrorImpl* m_pImpl;
-        friend class InternalError;
-    };
+			/**
+			 * Print a formatted log trace to stderr.
+			 */
+			virtual void PrintErrorTrace() const;
+
+		protected:
+
+		private:
+			ErrorType m_type;
+			ErrorImpl* m_pImpl;
+			friend class InternalError;
+	};
 }
 
 #endif // PGR_FC2_ERROR_H

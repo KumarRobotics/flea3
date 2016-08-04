@@ -1,12 +1,12 @@
 //=============================================================================
 // Copyright  2008 Point Grey Research, Inc. All Rights Reserved.
-// 
+//
 // This software is the confidential and proprietary information of Point
 // Grey Research, Inc. ("Confidential Information").  You shall not
 // disclose such Confidential Information and shall use it only in
 // accordance with the terms of the license agreement you entered into
 // with Point Grey Research, Inc. (PGR).
-// 
+//
 // PGR MAKES NO REPRESENTATIONS OR WARRANTIES ABOUT THE SUITABILITY OF THE
 // SOFTWARE, EITHER EXPRESSED OR IMPLIED, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
@@ -16,7 +16,7 @@
 //=============================================================================
 
 //=============================================================================
-// $Id: TopologyNode.h 112716 2011-05-13 16:37:36Z soowei $
+// $Id: TopologyNode.h 285597 2016-06-08 23:29:31Z erich $
 //=============================================================================
 
 #ifndef PGR_FC2_TOPOLOGYNODE_H
@@ -27,173 +27,173 @@
 
 namespace FlyCapture2
 {
-    class Error;
+	class Error;
 
-    /**
-     * The TopologyNode class contains topology information that can be
-     * used to generate a tree structure of all cameras and devices connected
-     * to a computer.
-     */ 
-    class FLYCAPTURE2_API TopologyNode 
-    {
-    public:
+	/**
+	 * The TopologyNode class contains topology information that can be
+	 * used to generate a tree structure of all cameras and devices connected
+	 * to a computer.
+	 */
+	class FLYCAPTURE2_API TopologyNode
+	{
+		public:
 
-        /**
-         * Possible states of a port on a node.
-         */ 
-        enum PortType
-        {
-            NOT_CONNECTED = 1,
-            CONNECTED_TO_PARENT,
-            CONNECTED_TO_CHILD         
-        };
+			/**
+			 * Possible states of a port on a node.
+			 */
+			enum PortType
+			{
+				NOT_CONNECTED = 1,
+				CONNECTED_TO_PARENT,
+				CONNECTED_TO_CHILD
+			};
 
-        /**
-         * Type of node.
-         */ 
-        enum NodeType
-        {
-            COMPUTER,
-            BUS,
-            CAMERA,
-            NODE
-        };
+			/**
+			 * Type of node.
+			 */
+			enum NodeType
+			{
+				COMPUTER,
+				BUS,
+				CAMERA,
+				NODE
+			};
 
-        /**
-         * Default constructor.
-         */
-        TopologyNode();
-        
-        /**
-         * Constructor.
-         *
-         * @param guid The PGRGuid of the node (if applicable).
-         * @param deviceId Device ID of the node.
-         * @param nodeType Type of the node.
-         * @param interfaceType Interface type of the node.
-         */ 
-        TopologyNode( 
-            PGRGuid guid,
-            int deviceId,
-            NodeType nodeType,
-            InterfaceType interfaceType );
+			/**
+			 * Default constructor.
+			 */
+			TopologyNode();
 
-        /**
-         * Default destructor.
-         */
-        virtual ~TopologyNode();
+			/**
+			 * Constructor.
+			 *
+			 * @param guid The PGRGuid of the node (if applicable).
+			 * @param deviceId Device ID of the node.
+			 * @param nodeType Type of the node.
+			 * @param interfaceType Interface type of the node.
+			 */
+			TopologyNode(
+					PGRGuid guid,
+					int deviceId,
+					NodeType nodeType,
+					InterfaceType interfaceType );
 
-        /**
-         * Copy constructor.
-         */
-        TopologyNode( const TopologyNode& other );
+			/**
+			 * Default destructor.
+			 */
+			virtual ~TopologyNode();
 
-        /**
-         * Assignment operator.
-         *
-         * @param other The TopologyNode to copy from.
-         */
-        virtual TopologyNode& operator=( const TopologyNode& other );
+			/**
+			 * Copy constructor.
+			 */
+			TopologyNode( const TopologyNode& other );
 
-        /**
-         * Get the PGRGuid associated with the node.
-         *
-         * @return PGRGuid of the node.
-         */ 
-        virtual PGRGuid GetGuid();
+			/**
+			 * Assignment operator.
+			 *
+			 * @param other The TopologyNode to copy from.
+			 */
+			virtual TopologyNode& operator=( const TopologyNode& other );
 
-        /**
-         * Get the device ID associated with the node.
-         *
-         * @return Device ID of the node.
-         */ 
-        virtual int GetDeviceId();   
-        
-        /**
-         * Get the node type associated with the node.
-         *
-         * @return Node type of the node.
-         */ 
-        virtual NodeType GetNodeType();
+			/**
+			 * Get the PGRGuid associated with the node.
+			 *
+			 * @return PGRGuid of the node.
+			 */
+			virtual PGRGuid GetGuid();
 
-        /**
-         * Get the interface type associated with the node.
-         *
-         * @return Interface type of the node.
-         */ 
-        virtual InterfaceType GetInterfaceType();
-        
-        /**
-         * Get the number of child nodes.
-         *
-         * @return Number of child nodes.
-         */
-        virtual unsigned int GetNumChildren();
+			/**
+			 * Get the device ID associated with the node.
+			 *
+			 * @return Device ID of the node.
+			 */
+			virtual int GetDeviceId();
 
-        /**
-         * Get child node located at the specified position.
-         *
-         * @param position Position of the node.
-         *
-         * @return TopologyNode at the specified position.
-         */
-        virtual TopologyNode GetChild( unsigned int position );
+			/**
+			 * Get the node type associated with the node.
+			 *
+			 * @return Node type of the node.
+			 */
+			virtual NodeType GetNodeType();
 
-        /**
-         * Add the specified TopologyNode as a child of the node.
-         *
-         * @param childNode The TopologyNode to add.
-         */
-        virtual void AddChild( TopologyNode childNode );
+			/**
+			 * Get the interface type associated with the node.
+			 *
+			 * @return Interface type of the node.
+			 */
+			virtual InterfaceType GetInterfaceType();
 
-        /**
-         * Get the number of ports.
-         *
-         * @return Number of ports.
-         */
-        virtual unsigned int GetNumPorts();
+			/**
+			 * Get the number of child nodes.
+			 *
+			 * @return Number of child nodes.
+			 */
+			virtual unsigned int GetNumChildren();
 
-        /**
-         * Get type of port located at the specified position.
-         *
-         * @param position Position of the port.
-         *
-         * @return PortType at the specified position.
-         */
-        virtual PortType GetPortType( unsigned int position );
+			/**
+			 * Get child node located at the specified position.
+			 *
+			 * @param position Position of the node.
+			 *
+			 * @return TopologyNode at the specified position.
+			 */
+			virtual TopologyNode GetChild( unsigned int position );
 
-        /**
-         * Add the specified PortType as a port of the node.
-         *
-         * @param childPort The port to add.
-         */
-        virtual void AddPort( PortType childPort );
+			/**
+			 * Add the specified TopologyNode as a child of the node.
+			 *
+			 * @param childNode The TopologyNode to add.
+			 */
+			virtual void AddChild( TopologyNode childNode );
 
-        /**
-         * Assign a PGRGuid and device ID to the node.
-         *
-         * @param guid PGRGuid to be assigned.
-         * @param deviceId Device ID to be assigned.
-         *
-         * @return Whether the data was successfully set to the node.
-         */ 
-        virtual bool AssignGuidToNode( PGRGuid guid, int deviceId );
+			/**
+			 * Get the number of ports.
+			 *
+			 * @return Number of ports.
+			 */
+			virtual unsigned int GetNumPorts();
 
-        /**
-         * Assign a PGRGuid, device ID and nodeType to the node.
-         *
-         * @param guid PGRGuid to be assigned.
-         * @param deviceId Device ID to be assigned.
-         * @param nodeType NodeType to be assigned
-         *
-         * @return Whether the data was successfully set to the node.
-         */ 
-        virtual bool AssignGuidToNode(PGRGuid guid, int deviceId, NodeType nodeType);
+			/**
+			 * Get type of port located at the specified position.
+			 *
+			 * @param position Position of the port.
+			 *
+			 * @return PortType at the specified position.
+			 */
+			virtual PortType GetPortType( unsigned int position );
 
-    private:
-        struct TopologyNodeData;
-        TopologyNodeData* m_pData;
-    };
+			/**
+			 * Add the specified PortType as a port of the node.
+			 *
+			 * @param childPort The port to add.
+			 */
+			virtual void AddPortType( PortType childPort );
+
+			/**
+			 * Assign a PGRGuid and device ID to the node.
+			 *
+			 * @param guid PGRGuid to be assigned.
+			 * @param deviceId Device ID to be assigned.
+			 *
+			 * @return Whether the data was successfully set to the node.
+			 */
+			virtual bool AssignGuidToNode( PGRGuid guid, int deviceId );
+
+			/**
+			 * Assign a PGRGuid, device ID and nodeType to the node.
+			 *
+			 * @param guid PGRGuid to be assigned.
+			 * @param deviceId Device ID to be assigned.
+			 * @param nodeType NodeType to be assigned
+			 *
+			 * @return Whether the data was successfully set to the node.
+			 */
+			virtual bool AssignGuidToNode(PGRGuid guid, int deviceId, NodeType nodeType);
+
+		private:
+			struct TopologyNodeData;
+			TopologyNodeData* m_pData;
+	};
 }
 
 #endif
