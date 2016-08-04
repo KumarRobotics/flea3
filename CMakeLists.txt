@@ -1,14 +1,12 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(flea3)
 
-find_package(catkin REQUIRED)
+find_package(catkin REQUIRED COMPONENTS
+    roscpp nodelet camera_base dynamic_reconfigure message_generation # std_msgs
+    )
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_SOURCE_DIR}/cmake)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -std=c++11")
-
-find_package(catkin REQUIRED COMPONENTS
-    roscpp nodelet camera_base message_generation std_msgs
-    )
 
 find_package(FlyCapture2 REQUIRED)
 
@@ -22,9 +20,11 @@ generate_dynamic_reconfigure_options(cfg/Flea3Dyn.cfg)
 #generate_messages(DEPENDENCIES std_msgs)
 
 catkin_package(
-    INCLUDE_DIRS include ${FlyCapture2_INCLUDE_DIRS}
-    LIBRARIES ${PROJECT_NAME} ${FlyCapture2_LIBRARIES}
-    CATKIN_DEPENDS message_runtime
+    INCLUDE_DIRS include
+    LIBRARIES ${PROJECT_NAME}
+    CATKIN_DEPENDS roscpp nodelet camera_base dynamic_reconfigure
+    message_runtime # std_msgs
+    DEPENDS FlyCapture2
     )
 
 include_directories(
@@ -46,6 +46,10 @@ target_link_libraries(
     ${catkin_LIBRARIES}
     ${FlyCapture2_LIBRARIES}
     )
+add_dependencies(${PROJECT_NAME}
+    ${catkin_EXPORTED_TARGETS}
+    ${${PROJECT_NAME}_EXPORTED_TARGETS}
+    )
 
 add_executable(${PROJECT_NAME}_single_node src/single/single_main.cpp)
 target_link_libraries(${PROJECT_NAME}_single_node ${PROJECT_NAME})
@@ -59,36 +63,25 @@ target_link_libraries(${PROJECT_NAME}_list_cameras ${PROJECT_NAME})
 add_executable(${PROJECT_NAME}_async_trigger src/flycapture/async_trigger.cpp)
 target_link_libraries(${PROJECT_NAME}_async_trigger ${PROJECT_NAME})
 
-add_dependencies(${PROJECT_NAME}
-    ${catkin_EXPORTED_TARGETS}
-    ${PROJECT_NAME}_gencfg
-    ${PROJECT_NAME}_gencpp
-    ${${PROJECT_NAME}_EXPORTED_TARGETS}
-    )
+install(TARGETS ${PROJECT_NAME} ${PROJECT_NAME}_single_node
+  ${PROJECT_NAME}_stereo_node ${PROJECT_NAME}_list_cameras
+  ${PROJECT_NAME}_async_trigger
+  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
 
-# install(TARGETS flea3_single_node flea3_stereo_node flea3_list_cameras
-#   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-#   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-#   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-# )
+install(DIRECTORY include/${PROJECT_NAME}/
+  DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
+  FILES_MATCHING PATTERN "*.h"
+  PATTERN "*.*~" EXCLUDE
+)
 
-# install(DIRECTORY include/${PROJECT_NAME}/
-#   DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
-#   FILES_MATCHING PATTERN "*.h"
-#   PATTERN "*.*~" EXCLUDE
-# )
+install(FILES nodelet_plugins.xml
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
+)
 
-# install(DIRECTORY msg/
-#   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/msg
-#   PATTERN "*.*~" EXCLUDE
-# )
-
-# install(DIRECTORY cfg/
-#   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/cfg
-#   PATTERN "*.*~" EXCLUDE
-# )
-
-# install(DIRECTORY launch/
-#   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch
-#   PATTERN "*.*~" EXCLUDE
-# )
+install(DIRECTORY launch/
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch
+  PATTERN "*.*~" EXCLUDE
+)
