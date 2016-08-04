@@ -1,12 +1,12 @@
 //=============================================================================
 // Copyright © 2008 Point Grey Research, Inc. All Rights Reserved.
-// 
+//
 // This software is the confidential and proprietary information of Point
 // Grey Research, Inc. ("Confidential Information").  You shall not
 // disclose such Confidential Information and shall use it only in
 // accordance with the terms of the license agreement you entered into
 // with Point Grey Research, Inc. (PGR).
-// 
+//
 // PGR MAKES NO REPRESENTATIONS OR WARRANTIES ABOUT THE SUITABILITY OF THE
 // SOFTWARE, EITHER EXPRESSED OR IMPLIED, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
@@ -16,7 +16,7 @@
 //=============================================================================
 
 //=============================================================================
-// $Id: Utilities.h 201275 2014-07-09 00:14:30Z warrenm $
+// $Id: Utilities.h 244578 2015-08-21 23:30:57Z matthewg $
 //=============================================================================
 
 #ifndef PGR_FC2_UTILITIES_H_
@@ -28,9 +28,9 @@
 
 namespace FlyCapture2
 {
-    class Error;
+	class Error;
 
-    /** Possible operating systems. */ 
+	/** Possible operating systems. */
 	enum OSType
 	{
 		WINDOWS_X86, /**< All Windows 32-bit variants. */
@@ -39,21 +39,21 @@ namespace FlyCapture2
 		LINUX_X64, /**< All Linux 32-bit variants. */
 		MAC, /**< Mac OSX. */
 		UNKNOWN_OS, /**< Unknown operating system. */
-        OSTYPE_FORCE_32BITS = FULL_32BIT_VALUE
+		OSTYPE_FORCE_32BITS = FULL_32BIT_VALUE
 	};
 
-    /** Possible byte orders. */ 
+	/** Possible byte orders. */
 	enum ByteOrder
 	{
 		BYTE_ORDER_LITTLE_ENDIAN,
 		BYTE_ORDER_BIG_ENDIAN,
-        BYTE_ORDER_FORCE_32BITS = FULL_32BIT_VALUE
+		BYTE_ORDER_FORCE_32BITS = FULL_32BIT_VALUE
 	};
 
-	/** Description of the system. */ 
-    struct SystemInfo
-    {
-        /** Operating system type as described by OSType. */
+	/** Description of the system. */
+	struct SystemInfo
+	{
+		/** Operating system type as described by OSType. */
 		OSType osType;
 
 		/** Detailed description of the operating system. */
@@ -83,129 +83,129 @@ namespace FlyCapture2
 		/** Screen resolution width in pixels. */
 		size_t screenWidth;
 
-        /** Screen resolution height in pixels. */
+		/** Screen resolution height in pixels. */
 		size_t screenHeight;
 
-        /** Reserved for future use. */
-        unsigned int reserved[16];
+		/** Reserved for future use. */
+		unsigned int reserved[16];
 
-    };
+	};
 
-    /** 
-     * Async command callback function prototype. Defines the syntax of the
-     * async command function that is passed into LaunchCommandAsync().
-     */
-    typedef void (*AsyncCommandCallback)( class Error retError, void* pUserData );
+	/**
+	 * Async command callback function prototype. Defines the syntax of the
+	 * async command function that is passed into LaunchCommandAsync().
+	 */
+	typedef void (*AsyncCommandCallback)( class Error retError, void* pUserData );
 
-    /**
-     * The Utility class is generally used to query for general system
-     * information such as operating system, available memory etc.
-     * It can also be used to launch browsers, CHM viewers or terminal commands.
-     */ 
-    class FLYCAPTURE2_API Utilities
-    {
-    public:
-		
-		/**
-         * Check for driver compatibility for the given camera guid.
-         *
-         * @param guid Pointer to the guid of the device to check.
-         *
-         * @return PGR_NO_ERROR if the library is compatible with the currently 
-		 *         loaded driver, otherwise an error indicating the type of failure.
-         */ 
-		static Error CheckDriver(const PGRGuid* guid);
+	/**
+	 * The Utility class is generally used to query for general system
+	 * information such as operating system, available memory etc.
+	 * It can also be used to launch browsers, CHM viewers or terminal commands.
+	 */
+	class FLYCAPTURE2_API Utilities
+	{
+		public:
 
-		/**
-         * Get the driver's name for a device
-         *
-         * @param guid Pointer to the guid of the device to check.
-		 * @param deviceName The device name will be returned in this string
-         *
-         * @return An Error indicating the success or failure of the function.
-         */ 
-		static Error GetDriverDeviceName(const PGRGuid* guid, std::string& deviceName);
+			/**
+			 * Check for driver compatibility for the given camera guid.
+			 *
+			 * @param guid Pointer to the guid of the device to check.
+			 *
+			 * @return PGR_NO_ERROR if the library is compatible with the currently
+			 *         loaded driver, otherwise an error indicating the type of failure.
+			 */
+			static Error CheckDriver(const PGRGuid* guid);
 
-        /**
-         * Get system information.
-         *
-         * @param pSystemInfo Structure to receive system information.
-         *
-         * @return An Error indicating the success or failure of the function.
-         */ 
-        static Error GetSystemInfo( 
-            SystemInfo* pSystemInfo );
+			/**
+			 * Get the driver's name for a device
+			 *
+			 * @param guid Pointer to the guid of the device to check.
+			 * @param deviceName The device name will be returned in this string
+			 *
+			 * @return An Error indicating the success or failure of the function.
+			 */
+			static Error GetDriverDeviceName(const PGRGuid* guid, std::string& deviceName);
 
-        /**
-         * Get library version.
-         *
-         * @param pVersion Structure to receive the library version.
-         *
-         * @return An Error indicating the success or failure of the function.
-         */ 
-        static Error GetLibraryVersion( 
-            FC2Version* pVersion );
+			/**
+			 * Get system information.
+			 *
+			 * @param pSystemInfo Structure to receive system information.
+			 *
+			 * @return An Error indicating the success or failure of the function.
+			 */
+			static Error GetSystemInfo(
+					SystemInfo* pSystemInfo );
 
-        /**
-         * Launch a URL in the system default browser.
-         *
-         * @param pAddress URL to open in browser.
-         *
-         * @return An Error indicating the success or failure of the function.
-         */ 
-        static Error LaunchBrowser(  
-            const char*  pAddress );
+			/**
+			 * Get library version.
+			 *
+			 * @param pVersion Structure to receive the library version.
+			 *
+			 * @return An Error indicating the success or failure of the function.
+			 */
+			static Error GetLibraryVersion(
+					FC2Version* pVersion );
 
-        /**
-         * Open a CHM file in the system default CHM viewer.
-         *
-         * @param pFileName Filename of CHM file to open.
-         *
-         * @return An Error indicating the success or failure of the function.
-         */ 
-        static Error LaunchHelp(  
-            const char*  pFileName );
-		
-        /**
-         * Execute a command in the terminal. This is a blocking call that 
-         * will return when the command completes.
-         *
-         * @param pCommand Command to execute.
-         *
-         * @see LaunchCommandAsync()
-         *
-         * @return An Error indicating the success or failure of the function.
-         */ 
-        static Error LaunchCommand(  
-            const char*  pCommand );
+			/**
+			 * Launch a URL in the system default browser.
+			 *
+			 * @param pAddress URL to open in browser.
+			 *
+			 * @return An Error indicating the success or failure of the function.
+			 */
+			static Error LaunchBrowser(
+					const char*  pAddress );
 
-        /**
-         * Execute a command in the terminal. This is a non-blocking call that 
-         * will return immediately. The return value of the command can be
-         * retrieved in the callback.
-         *
-         * @param pCommand Command to execute.
-         * @param pCallback Callback to fire when command is complete.
-         * @param pUserData Data pointer to pass to callback.
-         *
-         * @see LaunchCommand()
-         *
-         * @return An Error indicating the success or failure of the function.
-         */ 
-        static Error LaunchCommandAsync(  
-            const char*				pCommand,
-			AsyncCommandCallback	pCallback,
-			void*					pUserData );
+			/**
+			 * Open a CHM file in the system default CHM viewer.
+			 *
+			 * @param pFileName Filename of CHM file to open.
+			 *
+			 * @return An Error indicating the success or failure of the function.
+			 */
+			static Error LaunchHelp(
+					const char*  pFileName );
 
-    protected:
-    private:
-        Utilities();
-        ~Utilities();
+			/**
+			 * Execute a command in the terminal. This is a blocking call that
+			 * will return when the command completes.
+			 *
+			 * @param pCommand Command to execute.
+			 *
+			 * @see LaunchCommandAsync()
+			 *
+			 * @return An Error indicating the success or failure of the function.
+			 */
+			static Error LaunchCommand(
+					const char*  pCommand );
 
-        Utilities( const Utilities& other );
-        Utilities& operator=( const Utilities& other );
-      
-    };
+			/**
+			 * Execute a command in the terminal. This is a non-blocking call that
+			 * will return immediately. The return value of the command can be
+			 * retrieved in the callback.
+			 *
+			 * @param pCommand Command to execute.
+			 * @param pCallback Callback to fire when command is complete.
+			 * @param pUserData Data pointer to pass to callback.
+			 *
+			 * @see LaunchCommand()
+			 *
+			 * @return An Error indicating the success or failure of the function.
+			 */
+			static Error LaunchCommandAsync(
+					const char*				pCommand,
+					AsyncCommandCallback	pCallback,
+					void*					pUserData );
+
+		protected:
+		private:
+			Utilities();
+			~Utilities();
+
+			Utilities( const Utilities& other );
+			Utilities& operator=( const Utilities& other );
+
+	};
 }
 
 

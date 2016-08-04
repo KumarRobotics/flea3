@@ -16,17 +16,17 @@
 //=============================================================================
 
 //=============================================================================
-// $Id: FlyCapture2.h 171285 2013-08-14 00:21:57Z josephs $
+// $Id: FlyCapture2.h 244578 2015-08-21 23:30:57Z matthewg $
 //=============================================================================
 
 #ifndef PGR_FC2_FLYCAPTURE2_H
 #define PGR_FC2_FLYCAPTURE2_H
 
 //=============================================================================
-// Global header file for FlyCapture2. 
+// Global header file for FlyCapture2.
 //
-// By including this file, all required header files for full FlyCapture2 
-// operation will be included automatically. It is recommended that this file 
+// By including this file, all required header files for full FlyCapture2
+// operation will be included automatically. It is recommended that this file
 // be used instead of manually including individual header files.
 //=============================================================================
 

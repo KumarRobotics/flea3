@@ -1,12 +1,12 @@
 //=============================================================================
 // Copyright © 2009 Point Grey Research, Inc. All Rights Reserved.
-// 
+//
 // This software is the confidential and proprietary information of Point
 // Grey Research, Inc. ("Confidential Information").  You shall not
 // disclose such Confidential Information and shall use it only in
 // accordance with the terms of the license agreement you entered into
 // with Point Grey Research, Inc. (PGR).
-// 
+//
 // PGR MAKES NO REPRESENTATIONS OR WARRANTIES ABOUT THE SUITABILITY OF THE
 // SOFTWARE, EITHER EXPRESSED OR IMPLIED, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
@@ -16,7 +16,7 @@
 //=============================================================================
 
 //=============================================================================
-// $Id: AVIRecorder.h 125990 2011-06-02 18:52:23Z warrenm $
+// $Id: AVIRecorder.h 244578 2015-08-21 23:30:57Z matthewg $
 //=============================================================================
 
 #ifndef PGR_FC2_AVIRECORDER_H
@@ -27,106 +27,106 @@
 
 namespace FlyCapture2
 {
-    class Error;
-    class Image;
+	class Error;
+	class Image;
 
-    /** 
-     * The AVIRecorder class provides the functionality for the user to record
-     * images to an AVI file.
-     */
-    class FLYCAPTURE2_API AVIRecorder
-    {
-    public: 
+	/**
+	 * The AVIRecorder class provides the functionality for the user to record
+	 * images to an AVI file.
+	 */
+	class FLYCAPTURE2_API AVIRecorder
+	{
+		public:
 
-        /**
-         * Default constructor.
-         */
-        AVIRecorder();
+			/**
+			 * Default constructor.
+			 */
+			AVIRecorder();
 
-        /**
-         * Default destructor.
-         */
-        virtual ~AVIRecorder();
-        
-        /**
-         * Open an AVI file in preparation for writing Images to disk.
-         * The size of AVI files is limited to 2GB. The filenames are
-         * automatically generated using the filename specified.
-         *
-         * @param pFileName The filename of the AVI file.
-         * @param pOption Options to apply to the AVI file.
-         *
-         * @see AVIClose()
-         *
-         * @return An Error indicating the success or failure of the function.
-         */ 
-        virtual Error AVIOpen( 
-            const char* pFileName, 
-            AVIOption*  pOption );
+			/**
+			 * Default destructor.
+			 */
+			virtual ~AVIRecorder();
 
-        /**
-         * Open an MJPEG AVI file in preparation for writing Images to disk.
-         * The size of AVI files is limited to 2GB. The filenames are
-         * automatically generated using the filename specified.
-         *
-         * @param pFileName The filename of the AVI file.
-         * @param pOption MJPEG options to apply to the AVI file.
-         *
-         * @see AVIClose()
-		 * @see MJPGOption
-         *
-         * @return An Error indicating the success or failure of the function.
-         */ 
-        virtual Error AVIOpen( 
-            const char* pFileName, 
-            MJPGOption*  pOption );
+			/**
+			 * Open an AVI file in preparation for writing Images to disk.
+			 * The size of AVI files is limited to 2GB. The filenames are
+			 * automatically generated using the filename specified.
+			 *
+			 * @param pFileName The filename of the AVI file.
+			 * @param pOption Options to apply to the AVI file.
+			 *
+			 * @see AVIClose()
+			 *
+			 * @return An Error indicating the success or failure of the function.
+			 */
+			virtual Error AVIOpen(
+					const char* pFileName,
+					AVIOption*  pOption );
+
+			/**
+			 * Open an MJPEG AVI file in preparation for writing Images to disk.
+			 * The size of AVI files is limited to 2GB. The filenames are
+			 * automatically generated using the filename specified.
+			 *
+			 * @param pFileName The filename of the AVI file.
+			 * @param pOption MJPEG options to apply to the AVI file.
+			 *
+			 * @see AVIClose()
+			 * @see MJPGOption
+			 *
+			 * @return An Error indicating the success or failure of the function.
+			 */
+			virtual Error AVIOpen(
+					const char* pFileName,
+					MJPGOption*  pOption );
 
 
-		 /**
-         * Open an H264 MP4 file in preparation for writing Images to disk.
-         * The size of MP4 files is limited to 2GB. The filenames are
-         * automatically generated using the filename specified.
-         *
-         * @param pFileName The filename of the MP4 file.
-         * @param pOption H264 options to apply to the MP4 file.
-         *
-         * @see AVIClose()
-		 * @see H264Option
-         *
-         * @return An Error indicating the success or failure of the function.
-         */ 
-        virtual Error AVIOpen( 
-            const char* pFileName, 
-            H264Option*  pOption );
- 
+			/**
+			 * Open an H264 MP4 file in preparation for writing Images to disk.
+			 * The size of MP4 files is limited to 2GB. The filenames are
+			 * automatically generated using the filename specified.
+			 *
+			 * @param pFileName The filename of the MP4 file.
+			 * @param pOption H264 options to apply to the MP4 file.
+			 *
+			 * @see AVIClose()
+			 * @see H264Option
+			 *
+			 * @return An Error indicating the success or failure of the function.
+			 */
+			virtual Error AVIOpen(
+					const char* pFileName,
+					H264Option*  pOption );
 
-        /**
-         * Append an image to the AVI/MP4 file.
-         *
-         * @param pImage The image to append.
-         *
-         * @return An Error indicating the success or failure of the function.
-         */ 
-        virtual Error AVIAppend( Image* pImage);
-           
-        /**
-         * Close the AVI/MP4 file.
-         *
-         * @see AVIOpen()
-         *
-         * @return An Error indicating the success or failure of the function.
-         */ 
-        virtual Error AVIClose( );
 
-    private:
+			/**
+			 * Append an image to the AVI/MP4 file.
+			 *
+			 * @param pImage The image to append.
+			 *
+			 * @return An Error indicating the success or failure of the function.
+			 */
+			virtual Error AVIAppend( Image* pImage);
 
-        AVIRecorder( const AVIRecorder& );
-        AVIRecorder& operator=( const AVIRecorder& );
+			/**
+			 * Close the AVI/MP4 file.
+			 *
+			 * @see AVIOpen()
+			 *
+			 * @return An Error indicating the success or failure of the function.
+			 */
+			virtual Error AVIClose( );
 
-        struct AVIRecorderData; // Forward declaration
+		private:
 
-        AVIRecorderData* m_pAVIRecorderData;
-    };
+			AVIRecorder( const AVIRecorder& );
+			AVIRecorder& operator=( const AVIRecorder& );
+
+			struct AVIRecorderData; // Forward declaration
+
+			AVIRecorderData* m_pAVIRecorderData;
+	};
 }
 
 #endif //PGR_FC2_AVIRECORDER_H

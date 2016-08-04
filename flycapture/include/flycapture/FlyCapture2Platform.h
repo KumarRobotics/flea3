@@ -16,32 +16,50 @@
 //=============================================================================
 
 //=============================================================================
-// $Id: FlyCapture2Platform.h 150960 2012-10-12 17:45:54Z warrenm $
+// $Id: FlyCapture2Platform.h 284515 2016-06-02 18:11:05Z erich $
 //=============================================================================
 
 #ifndef PGR_FC2_FLYCAPTURE2PLATFORM_H
 #define PGR_FC2_FLYCAPTURE2PLATFORM_H
 
 //=============================================================================
-// Platform-specific header file for FlyCapture2. 
+// Platform-specific header file for FlyCapture2.
 //
 // All the platform-specific code that is required by individual compilers
 // to produce the appropriate code for each platform.
 //=============================================================================
 
-#if defined(WIN32) || defined(WIN64)
+#if defined(_WIN32) || defined(_WIN64)
 
 // Windows 32-bit and 64-bit
 #ifdef FLYCAPTURE2_EXPORT
 #define FLYCAPTURE2_API __declspec( dllexport )
 #elif defined(FLYCAPTURE2_STATIC)
-#define FLYCAPTURE2_API 
+#define FLYCAPTURE2_API
 #else
 #define FLYCAPTURE2_API __declspec( dllimport )
 #endif
 
 #if _MSC_VER > 1000
 #pragma once
+#endif
+
+// Provide a common naming scheme for fixed-width integer types
+#ifdef _MSC_VER
+#if _MSC_VER >= 1600
+#include <cstdint>
+#else
+//typedef __int8				int8_t;
+typedef __int16				int16_t;
+typedef __int32				int32_t;
+typedef __int64				int64_t;
+//typedef unsigned __int8		uint8_t;
+typedef unsigned __int16	uint16_t;
+typedef unsigned __int32	uint32_t;
+typedef unsigned __int64	uint64_t;
+#endif
+#elif __GNUC__ >=3
+#include <cstdint>
 #endif
 
 #elif defined(MAC_OSX)
