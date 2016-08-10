@@ -1,5 +1,5 @@
 #include "flea3/flea3_camera.h"
-#include "flea3/flea3_setting.h"
+#include "flea3/flea3_settings.h"
 #include <sensor_msgs/fill_image.h>
 #include <utility>
 
@@ -20,14 +20,16 @@ union AbsValueConversion {
   float float_val;
 };
 
-Flea3Camera::Flea3Camera(const std::string& serial) : serial_(serial) {
+Flea3Camera::Flea3Camera(const std::string &serial) : serial_(serial) {
   // Wait for camera to power up
   int num_tries{3};
   while (num_tries > 0) {
-    if (Connect()) break;
-    usleep(100000);  // Sleep for 100ms
+    if (Connect())
+      break;
+    usleep(100000); // Sleep for 100ms
     --num_tries;
   }
+
   if (num_tries == 0) {
     throw std::runtime_error("Failed after multiple tries, abort.");
   }
@@ -105,7 +107,7 @@ void Flea3Camera::StopCapture() {
   }
 }
 
-void Flea3Camera::Configure(Config& config) {
+void Flea3Camera::Configure(Config &config) {
   // Video Mode
   SetVideoMode(config.video_mode, config.format7_mode, config.pixel_format,
                config.width, config.height);
@@ -141,8 +143,8 @@ void Flea3Camera::Configure(Config& config) {
 }
 
 // TODO: simplify logic here
-void Flea3Camera::SetVideoMode(int& video_mode, int& format7_mode,
-                               int& pixel_format, int& width, int& height) {
+void Flea3Camera::SetVideoMode(int &video_mode, int &format7_mode,
+                               int &pixel_format, int &width, int &height) {
   // Try setting video mode based on video_mode, fail silently
   if (video_mode == Flea3Dyn_format7) {
     SetFormat7VideoMode(format7_mode, pixel_format, width, height);
@@ -172,7 +174,8 @@ void Flea3Camera::SetFormat7VideoMode(int format7_mode, int pixel_format,
                                       int width, int height) {
   const auto fmt7_mode_pg = static_cast<Mode>(format7_mode);
   const auto fmt7_info = GetFormat7Info(camera_, fmt7_mode_pg);
-  if (!fmt7_info.second) return;
+  if (!fmt7_info.second)
+    return;
 
   Format7ImageSettings fmt7_settings;
   fmt7_settings.mode = fmt7_mode_pg;
@@ -186,7 +189,8 @@ void Flea3Camera::SetFormat7VideoMode(int format7_mode, int pixel_format,
 
   // Validate the settings
   const auto fmt7_packet_info = IsFormat7SettingsValid(camera_, fmt7_settings);
-  if (!fmt7_packet_info.second) ROS_WARN("Format 7 Setting is not valid");
+  if (!fmt7_packet_info.second)
+    ROS_WARN("Format 7 Setting is not valid");
   PgrWarn(camera_.SetFormat7Configuration(
               &fmt7_settings, fmt7_packet_info.first.recommendedBytesPerPacket),
           "Failed to set format7 mode");
@@ -194,12 +198,13 @@ void Flea3Camera::SetFormat7VideoMode(int format7_mode, int pixel_format,
 
 void Flea3Camera::SetStandardVideoMode(int video_mode) {
   const auto video_mode_pg = static_cast<VideoMode>(video_mode);
-  if (!IsVideoModeSupported(camera_, video_mode_pg)) return;
+  if (!IsVideoModeSupported(camera_, video_mode_pg))
+    return;
   const auto max_frame_rate_pg = GetMaxFrameRate(camera_, video_mode_pg);
   PgrWarn(camera_.SetVideoModeAndFrameRate(video_mode_pg, max_frame_rate_pg));
 }
 
-void Flea3Camera::SetFrameRate(double& frame_rate) {
+void Flea3Camera::SetFrameRate(double &frame_rate) {
   SetProperty(camera_, FRAME_RATE, true, false, frame_rate);
   const auto prop = GetProperty(camera_, FRAME_RATE);
   if (prop.onOff) {
@@ -207,12 +212,14 @@ void Flea3Camera::SetFrameRate(double& frame_rate) {
   }
 }
 
-bool Flea3Camera::GrabImage(sensor_msgs::Image& image_msg) {
-  if (!(camera_.IsConnected() && capturing_)) return false;
+bool Flea3Camera::GrabImage(sensor_msgs::Image &image_msg) {
+  if (!(camera_.IsConnected() && capturing_))
+    return false;
 
   Image image;
   const auto error = camera_.RetrieveBuffer(&image);
-  if (error != PGRERROR_OK) return false;
+  if (error != PGRERROR_OK)
+    return false;
 
   // Set image encodings
   const auto bayer_format = image.GetBayerTileFormat();
@@ -251,9 +258,9 @@ bool Flea3Camera::GrabImage(sensor_msgs::Image& image_msg) {
 //  image_metadata_msg.brightness = abs_val.float_val;
 //}
 
-void Flea3Camera::SetWhiteBalanceRedBlue(bool& white_balance,
-                                         bool& auto_white_balance, int& red,
-                                         int& blue) {
+void Flea3Camera::SetWhiteBalanceRedBlue(bool &white_balance,
+                                         bool &auto_white_balance, int &red,
+                                         int &blue) {
   if (!camera_info_.isColorCamera) {
     // Not even a color camera
     ROS_WARN("Camera %s is not a color camera, white balance not supported",
@@ -298,8 +305,8 @@ void Flea3Camera::EnableAutoWhiteBalance() {
   WriteRegister(camera_, 0x80C, 1 << 31);
 }
 
-void Flea3Camera::SetExposure(bool& exposure, bool& auto_exposure,
-                              double& exposure_value) {
+void Flea3Camera::SetExposure(bool &exposure, bool &auto_exposure,
+                              double &exposure_value) {
   const auto prop_type = AUTO_EXPOSURE;
   SetProperty(camera_, prop_type, exposure, auto_exposure, exposure_value);
   const auto prop = GetProperty(camera_, prop_type);
@@ -308,7 +315,7 @@ void Flea3Camera::SetExposure(bool& exposure, bool& auto_exposure,
   exposure_value = prop.absValue;
 }
 
-void Flea3Camera::SetShutter(bool& auto_shutter, double& shutter_ms) {
+void Flea3Camera::SetShutter(bool &auto_shutter, double &shutter_ms) {
   const auto prop_type = SHUTTER;
   SetProperty(camera_, prop_type, true, auto_shutter, shutter_ms);
   const auto prop = GetProperty(camera_, prop_type);
@@ -316,7 +323,7 @@ void Flea3Camera::SetShutter(bool& auto_shutter, double& shutter_ms) {
   shutter_ms = prop.absValue;
 }
 
-void Flea3Camera::SetGain(bool& auto_gain, double& gain_db) {
+void Flea3Camera::SetGain(bool &auto_gain, double &gain_db) {
   const auto prop_type = GAIN;
   SetProperty(camera_, prop_type, true, auto_gain, gain_db);
   const auto prop = GetProperty(camera_, prop_type);
@@ -324,21 +331,21 @@ void Flea3Camera::SetGain(bool& auto_gain, double& gain_db) {
   gain_db = prop.absValue;
 }
 
-void Flea3Camera::SetBrightness(double& brightness) {
+void Flea3Camera::SetBrightness(double &brightness) {
   const auto prop_type = BRIGHTNESS;
   SetProperty(camera_, prop_type, true, false, brightness);
   const auto prop = GetProperty(camera_, prop_type);
   brightness = prop.absValue;
 }
 
-void Flea3Camera::SetGamma(double& gamma) {
+void Flea3Camera::SetGamma(double &gamma) {
   const auto prop_type = GAMMA;
   SetProperty(camera_, prop_type, true, false, gamma);
   const auto prop = GetProperty(camera_, prop_type);
   gamma = prop.absValue;
 }
 
-void Flea3Camera::SetRawBayerOutput(bool& raw_bayer_output) {
+void Flea3Camera::SetRawBayerOutput(bool &raw_bayer_output) {
   // Because this only works in standard video mode, we only enable this if
   // video mode is not format 7
   const auto video_mode_frame_rate_pg = GetVideoModeAndFrameRate(camera_);
@@ -350,8 +357,8 @@ void Flea3Camera::SetRawBayerOutput(bool& raw_bayer_output) {
   WriteRegister(camera_, 0x1050, static_cast<unsigned>(raw_bayer_output));
 }
 
-void Flea3Camera::SetRoi(const Format7Info& format7_info,
-                         Format7ImageSettings& format7_settings, int width,
+void Flea3Camera::SetRoi(const Format7Info &format7_info,
+                         Format7ImageSettings &format7_settings, int width,
                          int height) {
   const auto width_setting =
       CenterRoi(width, format7_info.maxWidth, format7_info.imageHStepSize);
@@ -363,7 +370,7 @@ void Flea3Camera::SetRoi(const Format7Info& format7_info,
   format7_settings.offsetY = height_setting.second;
 }
 
-void Flea3Camera::SetTrigger(int& trigger_source, int& trigger_polarity) {
+void Flea3Camera::SetTrigger(int &trigger_source, int &trigger_polarity) {
   TriggerModeInfo trigger_mode_info;
   PgrWarn(camera_.GetTriggerModeInfo(&trigger_mode_info),
           "Failed to get trigger mode info");
@@ -400,7 +407,7 @@ void Flea3Camera::SetTrigger(int& trigger_source, int& trigger_polarity) {
   trigger_polarity = trigger_mode.polarity;
 }
 
-void Flea3Camera::SetStrobe(int& strobe_control, int& polarity) {
+void Flea3Camera::SetStrobe(int &strobe_control, int &polarity) {
   // Turn off all strobe when we switch it off
   if (strobe_control == Flea3Dyn_sc_off) {
     TurnOffStrobe({1, 2, 3});
@@ -425,8 +432,8 @@ void Flea3Camera::SetStrobe(int& strobe_control, int& polarity) {
   PgrWarn(camera_.SetStrobe(&strobe), "Failed to set strobe");
 }
 
-void Flea3Camera::TurnOffStrobe(const std::vector<int>& strobes) {
-  for (const auto& s : strobes) {
+void Flea3Camera::TurnOffStrobe(const std::vector<int> &strobes) {
+  for (const auto &s : strobes) {
     StrobeControl strobe;
     strobe.source = s;
     strobe.onOff = false;
@@ -475,4 +482,4 @@ double Flea3Camera::GetShutterTimeSec() {
   return config_.shutter_ms / 1000.0;
 }
 
-}  // namespace flea3
+} // namespace flea3

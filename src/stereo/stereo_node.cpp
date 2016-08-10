@@ -2,7 +2,7 @@
 
 namespace flea3 {
 
-StereoNode::StereoNode(const ros::NodeHandle& pnh)
+StereoNode::StereoNode(const ros::NodeHandle &pnh)
     : CameraNodeBase(pnh), left_ros_(pnh, "left"), right_ros_(pnh, "right") {}
 
 void StereoNode::Acquire() {
@@ -18,7 +18,7 @@ void StereoNode::Acquire() {
   }
 }
 
-void StereoNode::Setup(Flea3DynConfig& config) {
+void StereoNode::Setup(Flea3DynConfig &config) {
   left_ros_.Stop();
   right_ros_.Stop();
   left_ros_.set_fps(config.fps);
@@ -30,4 +30,4 @@ void StereoNode::Setup(Flea3DynConfig& config) {
   right_ros_.Start();
 }
 
-}  // namespace flea3
+} // namespace flea3

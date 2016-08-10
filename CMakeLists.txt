@@ -35,7 +35,7 @@ include_directories(
 
 add_library(${PROJECT_NAME}
     src/flea3_camera.cpp
-    src/flea3_setting.cpp
+    src/flea3_settings.cpp
     src/flea3_ros.cpp
     src/single/single_node.cpp
     src/stereo/stereo_node.cpp
