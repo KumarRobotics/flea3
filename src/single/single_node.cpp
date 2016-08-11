@@ -12,7 +12,7 @@ void SingleNode::Acquire() {
           ros::Duration(flea3_ros_.camera().GetShutterTimeSec() / 2);
       const auto time = ros::Time::now() + expose_duration;
       flea3_ros_.PublishCamera(time);
-      //      flea3_ros_.PublishImageMetadata(time);
+      flea3_ros_.PublishImageInfo(time);
       Sleep();
     }
   }

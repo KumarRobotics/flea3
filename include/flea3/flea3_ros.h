@@ -1,6 +1,7 @@
 #ifndef FLEA3_FLEA3_ROS_H_
 #define FLEA3_FLEA3_ROS_H_
 
+#include "flea3/SetShutterMs.h"
 #include "flea3/flea3_camera.h"
 #include <camera_base/camera_ros_base.h>
 #include <cv_bridge/cv_bridge.h>
@@ -18,15 +19,18 @@ public:
 
   bool Grab(const sensor_msgs::ImagePtr &image_msg,
             const sensor_msgs::CameraInfoPtr &cinfo_msg = nullptr) override;
-  void PublishImageMetadata(const ros::Time &time);
+  void PublishImageInfo(const ros::Time &time);
 
   void Stop();
   void Start();
 
+  bool SetShutterMs(SetShutterMs::Request &req, SetShutterMs::Response &res);
+
 private:
   Flea3Camera flea3_;
   ros::NodeHandle pnh_;
-  //  ros::Publisher image_metadata_pub_;
+  ros::Publisher pub_image_info_;
+  ros::ServiceServer srv_shutter_ms_;
 };
 
 } // namespace flea3

@@ -2,7 +2,8 @@ cmake_minimum_required(VERSION 2.8.3)
 project(flea3)
 
 find_package(catkin REQUIRED COMPONENTS
-    roscpp nodelet camera_base dynamic_reconfigure message_generation # std_msgs
+    roscpp nodelet camera_base dynamic_reconfigure message_generation
+    std_msgs
     )
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_SOURCE_DIR}/cmake)
@@ -13,17 +14,24 @@ find_package(FlyCapture2 REQUIRED)
 # Dynamic reconfigure
 generate_dynamic_reconfigure_options(cfg/Flea3Dyn.cfg)
 
+# Service
+add_service_files(
+  DIRECTORY srv
+  FILES SetShutterMs.srv
+)
+
 # Message
-#add_message_files(DIRECTORY msg
-#    FILES ImageMetadata.msg
-#    )
-#generate_messages(DEPENDENCIES std_msgs)
+add_message_files(DIRECTORY msg
+    FILES ImageInfo.msg
+    )
+generate_messages(DEPENDENCIES std_msgs)
+
 
 catkin_package(
     INCLUDE_DIRS include
     LIBRARIES ${PROJECT_NAME}
     CATKIN_DEPENDS roscpp nodelet camera_base dynamic_reconfigure
-    message_runtime # std_msgs
+    message_runtime std_msgs
     DEPENDS FlyCapture2
     )
 

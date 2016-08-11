@@ -241,22 +241,22 @@ bool Flea3Camera::GrabImage(sensor_msgs::Image &image_msg) {
                                 image.GetData());
 }
 
-// void Flea3Camera::GrabImageMetadata(ImageMetadata& image_metadata_msg) {
-//  AbsValueConversion abs_val;
-//  // These registers can be found in register reference manual
-//  camera_.ReadRegister(0x908, &abs_val.uint_val);
-//  image_metadata_msg.exposure_value = abs_val.float_val;
+void Flea3Camera::GrabImageInfo(ImageInfo &image_info_msg) {
+  AbsValueConversion abs_val;
+  // These registers can be found in register reference manual
+  camera_.ReadRegister(0x908, &abs_val.uint_val);
+  image_info_msg.exposure_value = abs_val.float_val;
 
-//  // The value read from abs register is in seconds
-//  camera_.ReadRegister(0x918, &abs_val.uint_val);
-//  image_metadata_msg.shutter_ms = abs_val.float_val * 1000;
+  // The value read from abs register is in seconds
+  camera_.ReadRegister(0x918, &abs_val.uint_val);
+  image_info_msg.shutter_ms = abs_val.float_val * 1000;
 
-//  camera_.ReadRegister(0x928, &abs_val.uint_val);
-//  image_metadata_msg.gain_db = abs_val.float_val;
+  camera_.ReadRegister(0x928, &abs_val.uint_val);
+  image_info_msg.gain_db = abs_val.float_val;
 
-//  camera_.ReadRegister(0x938, &abs_val.uint_val);
-//  image_metadata_msg.brightness = abs_val.float_val;
-//}
+  camera_.ReadRegister(0x938, &abs_val.uint_val);
+  image_info_msg.brightness = abs_val.float_val;
+}
 
 void Flea3Camera::SetWhiteBalanceRedBlue(bool &white_balance,
                                          bool &auto_white_balance, int &red,
