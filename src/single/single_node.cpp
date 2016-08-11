@@ -25,4 +25,4 @@ void SingleNode::Setup(Config &config) {
   flea3_ros_.Start();
 }
 
-} // namespace flea3
+}  // namespace flea3

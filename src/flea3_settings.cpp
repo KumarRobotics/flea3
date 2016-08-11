@@ -1,7 +1,7 @@
 #include "flea3/flea3_settings.h"
-#include <iostream>
 #include <ros/ros.h>
 #include <sensor_msgs/image_encodings.h>
+#include <iostream>
 
 namespace flea3 {
 
@@ -10,33 +10,33 @@ std::string BayerFormatToEncoding(const BayerTileFormat &bayer_format,
   using namespace sensor_msgs::image_encodings;
   if (bits_per_pixel == 8) {
     switch (bayer_format) {
-    case RGGB:
-      return BAYER_RGGB8;
-    case GRBG:
-      return BAYER_GRBG8;
-    case GBRG:
-      return BAYER_GBRG8;
-    case BGGR:
-      return BAYER_BGGR8;
-    case NONE:
-      return MONO8;
-    default:
-      return MONO8;
+      case RGGB:
+        return BAYER_RGGB8;
+      case GRBG:
+        return BAYER_GRBG8;
+      case GBRG:
+        return BAYER_GBRG8;
+      case BGGR:
+        return BAYER_BGGR8;
+      case NONE:
+        return MONO8;
+      default:
+        return MONO8;
     }
   } else if (bits_per_pixel == 16) {
     switch (bayer_format) {
-    case RGGB:
-      return BAYER_RGGB16;
-    case GRBG:
-      return BAYER_GRBG16;
-    case GBRG:
-      return BAYER_GBRG16;
-    case BGGR:
-      return BAYER_BGGR16;
-    case NONE:
-      return MONO16;
-    default:
-      return MONO16;
+      case RGGB:
+        return BAYER_RGGB16;
+      case GRBG:
+        return BAYER_GRBG16;
+      case GBRG:
+        return BAYER_GBRG16;
+      case BGGR:
+        return BAYER_BGGR16;
+      case NONE:
+        return MONO16;
+      default:
+        return MONO16;
     }
   }
   return MONO8;
@@ -85,8 +85,7 @@ void PrintPropertyInfo(const PropertyInfo &prop_info,
             << ", manual: " << prop_info.manualSupported
             << ", one push: " << prop_info.onePushSupported;
 
-  if (!prop_info.readOutSupported)
-    return;
+  if (!prop_info.readOutSupported) return;
 
   if (prop_info.absValSupported) {
     std::cout << ", [abs]"
@@ -242,8 +241,8 @@ bool IsFormat7Supported(Camera &camera) {
   return false;
 }
 
-std::pair<Format7PacketInfo, bool>
-IsFormat7SettingsValid(Camera &camera, Format7ImageSettings &fmt7_settings) {
+std::pair<Format7PacketInfo, bool> IsFormat7SettingsValid(
+    Camera &camera, Format7ImageSettings &fmt7_settings) {
   Format7PacketInfo fmt7_packet_info;
   bool valid = false;
   PgrWarn(
@@ -253,8 +252,7 @@ IsFormat7SettingsValid(Camera &camera, Format7ImageSettings &fmt7_settings) {
 }
 
 std::pair<int, int> CenterRoi(int size, int max_size, int step) {
-  if (size == 0 || size > max_size)
-    size = max_size;
+  if (size == 0 || size > max_size) size = max_size;
   // size should be a multiple of step
   size = size / step * step;
   const int offset = (max_size - size) / 2;
@@ -262,4 +260,4 @@ std::pair<int, int> CenterRoi(int size, int max_size, int step) {
   return std::make_pair(size, offset);
 }
 
-} // namespace flea3
+}  // namespace flea3

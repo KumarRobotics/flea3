@@ -1,17 +1,17 @@
 #ifndef FLEA3_FLEA3_CAMERA_H_
 #define FLEA3_FLEA3_CAMERA_H_
 
-#include "flea3/Flea3DynConfig.h"
-#include "flea3/ImageInfo.h"
 #include <flycapture/FlyCapture2.h>
 #include <sensor_msgs/CameraInfo.h>
 #include <sensor_msgs/Image.h>
+#include "flea3/Flea3DynConfig.h"
+#include "flea3/ImageInfo.h"
 
 namespace flea3 {
 using namespace FlyCapture2;
 
 class Flea3Camera {
-public:
+ public:
   using Config = ::flea3::Flea3DynConfig;
 
   explicit Flea3Camera(const std::string &serial);
@@ -30,7 +30,10 @@ public:
   bool RequestSingle();
   double GetShutterTimeSec();
 
-private:
+  void SetShutter(bool &auto_shutter, double &shutter_ms);
+  void SetGain(bool &auto_gain, double &gain_db);
+
+ private:
   std::string AvailableDevice();
 
   // Start up
@@ -57,8 +60,6 @@ private:
   void SetRawBayerOutput(bool &raw_bayer_output);
 
   void SetExposure(bool &exposure, bool &auto_exposure, double &exposure_value);
-  void SetShutter(bool &auto_shutter, double &shutter_ms);
-  void SetGain(bool &auto_gain, double &gain_db);
   void SetBrightness(double &brightness);
   void SetGamma(double &gamma);
 
@@ -79,6 +80,6 @@ private:
   Config config_;
 };
 
-} // namespace flea3
+}  // namespace flea3
 
-#endif // FLEA3_FLEA3_CAMERA_H_
+#endif  // FLEA3_FLEA3_CAMERA_H_

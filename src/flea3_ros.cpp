@@ -27,7 +27,15 @@ void Flea3Ros::PublishImageInfo(const ros::Time &time) {
 
 bool Flea3Ros::SetShutterMs(SetShutterMs::Request &req,
                             SetShutterMs::Response &res) {
-  ROS_INFO("setting shutter time");
+  double shutter_ms = req.shutter_ms;
+  bool auto_shutter = false;
+  flea3_.SetShutter(auto_shutter, shutter_ms);
+  res.shutter_ms = shutter_ms;
+
+  // For now disable auto gain
+  bool auto_gain = false;
+  double gain_db = 0;
+  flea3_.SetGain(auto_gain, gain_db);
   return true;
 }
 
@@ -37,4 +45,4 @@ void Flea3Ros::Start() { flea3_.StartCapture(); }
 
 bool Flea3Ros::RequestSingle() { return flea3_.RequestSingle(); }
 
-} // namespace flea3
+}  // namespace flea3

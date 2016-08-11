@@ -8,17 +8,17 @@
 namespace flea3 {
 
 class StereoNode : public camera_base::CameraNodeBase<Flea3DynConfig> {
-public:
+ public:
   explicit StereoNode(const ros::NodeHandle &pnh);
 
   virtual void Acquire() override;
   virtual void Setup(Flea3DynConfig &config) override;
 
-private:
+ private:
   Flea3Ros left_ros_;
   Flea3Ros right_ros_;
 };
 
-} // namespace flea3
+}  // namespace flea3
 
-#endif // FLEA3_STEREO_NODE_H_
+#endif  // FLEA3_STEREO_NODE_H_

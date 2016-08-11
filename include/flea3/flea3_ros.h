@@ -1,15 +1,15 @@
 #ifndef FLEA3_FLEA3_ROS_H_
 #define FLEA3_FLEA3_ROS_H_
 
-#include "flea3/SetShutterMs.h"
-#include "flea3/flea3_camera.h"
 #include <camera_base/camera_ros_base.h>
 #include <cv_bridge/cv_bridge.h>
+#include "flea3/SetShutterMs.h"
+#include "flea3/flea3_camera.h"
 
 namespace flea3 {
 
 class Flea3Ros : public camera_base::CameraRosBase {
-public:
+ public:
   explicit Flea3Ros(const ros::NodeHandle &pnh,
                     const std::string &prefix = std::string());
 
@@ -26,13 +26,13 @@ public:
 
   bool SetShutterMs(SetShutterMs::Request &req, SetShutterMs::Response &res);
 
-private:
+ private:
   Flea3Camera flea3_;
   ros::NodeHandle pnh_;
   ros::Publisher pub_image_info_;
   ros::ServiceServer srv_shutter_ms_;
 };
 
-} // namespace flea3
+}  // namespace flea3
 
-#endif // FLEA3_FLEA3_ROS_H_
+#endif  // FLEA3_FLEA3_ROS_H_

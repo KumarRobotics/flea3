@@ -1,7 +1,7 @@
 #include "flea3/flea3_camera.h"
-#include "flea3/flea3_settings.h"
 #include <sensor_msgs/fill_image.h>
 #include <utility>
+#include "flea3/flea3_settings.h"
 
 namespace flea3 {
 
@@ -24,9 +24,8 @@ Flea3Camera::Flea3Camera(const std::string &serial) : serial_(serial) {
   // Wait for camera to power up
   int num_tries{3};
   while (num_tries > 0) {
-    if (Connect())
-      break;
-    usleep(100000); // Sleep for 100ms
+    if (Connect()) break;
+    usleep(100000);  // Sleep for 100ms
     --num_tries;
   }
 
@@ -174,8 +173,7 @@ void Flea3Camera::SetFormat7VideoMode(int format7_mode, int pixel_format,
                                       int width, int height) {
   const auto fmt7_mode_pg = static_cast<Mode>(format7_mode);
   const auto fmt7_info = GetFormat7Info(camera_, fmt7_mode_pg);
-  if (!fmt7_info.second)
-    return;
+  if (!fmt7_info.second) return;
 
   Format7ImageSettings fmt7_settings;
   fmt7_settings.mode = fmt7_mode_pg;
@@ -189,8 +187,7 @@ void Flea3Camera::SetFormat7VideoMode(int format7_mode, int pixel_format,
 
   // Validate the settings
   const auto fmt7_packet_info = IsFormat7SettingsValid(camera_, fmt7_settings);
-  if (!fmt7_packet_info.second)
-    ROS_WARN("Format 7 Setting is not valid");
+  if (!fmt7_packet_info.second) ROS_WARN("Format 7 Setting is not valid");
   PgrWarn(camera_.SetFormat7Configuration(
               &fmt7_settings, fmt7_packet_info.first.recommendedBytesPerPacket),
           "Failed to set format7 mode");
@@ -198,8 +195,7 @@ void Flea3Camera::SetFormat7VideoMode(int format7_mode, int pixel_format,
 
 void Flea3Camera::SetStandardVideoMode(int video_mode) {
   const auto video_mode_pg = static_cast<VideoMode>(video_mode);
-  if (!IsVideoModeSupported(camera_, video_mode_pg))
-    return;
+  if (!IsVideoModeSupported(camera_, video_mode_pg)) return;
   const auto max_frame_rate_pg = GetMaxFrameRate(camera_, video_mode_pg);
   PgrWarn(camera_.SetVideoModeAndFrameRate(video_mode_pg, max_frame_rate_pg));
 }
@@ -213,13 +209,11 @@ void Flea3Camera::SetFrameRate(double &frame_rate) {
 }
 
 bool Flea3Camera::GrabImage(sensor_msgs::Image &image_msg) {
-  if (!(camera_.IsConnected() && capturing_))
-    return false;
+  if (!(camera_.IsConnected() && capturing_)) return false;
 
   Image image;
   const auto error = camera_.RetrieveBuffer(&image);
-  if (error != PGRERROR_OK)
-    return false;
+  if (error != PGRERROR_OK) return false;
 
   // Set image encodings
   const auto bayer_format = image.GetBayerTileFormat();
@@ -482,4 +476,4 @@ double Flea3Camera::GetShutterTimeSec() {
   return config_.shutter_ms / 1000.0;
 }
 
-} // namespace flea3
+}  // namespace flea3

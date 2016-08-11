@@ -1,3 +1,5 @@
-float64 request_shutter_ms
+# requested
+float64 shutter_ms
 ---
-int64 real_shutter_ms
+# result
+float64 shutter_ms
