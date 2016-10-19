@@ -3,7 +3,6 @@
 
 #include <camera_base/camera_ros_base.h>
 #include "flea3/flea3_camera.h"
-#include <cv_bridge/cv_bridge.h>
 
 namespace flea3 {
 
