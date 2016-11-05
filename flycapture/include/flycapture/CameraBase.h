@@ -16,7 +16,7 @@
 //=============================================================================
 
 //=============================================================================
-// $Id: CameraBase.h 286327 2016-06-14 00:14:22Z erich $
+// $Id: CameraBase.h 297567 2016-09-02 20:03:45Z erich $
 //=============================================================================
 
 #ifndef PGR_FC2_CAMERABASE_H_
@@ -82,7 +82,8 @@ namespace FlyCapture2
 
 			/**
 			 * Disconnects the camera object from the camera. This allows another
-			 * physical camera to be connected to the camera object.
+			 * physical camera specified by a GUID to be connected to the camera
+			 * object.
 			 *
 			 * @see Connect()
 			 *
@@ -91,13 +92,13 @@ namespace FlyCapture2
 			virtual Error Disconnect() = 0;
 
 			/**
-			 * Checks if the camera object is currently connected to a physical
-			 * camera.
+			 * Checks if the camera object is connected to a physical camera
+			 * specified by a GUID.
 			 *
 			 * @see Connect()
 			 * @see Disconnect()
 			 *
-			 * @return Whether the camera object is connected to a physical camera.
+			 * @return Whether Connect() was called on the camera object.
 			 */
 			virtual bool IsConnected() = 0;
 
