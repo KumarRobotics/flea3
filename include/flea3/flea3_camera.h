@@ -63,7 +63,8 @@ class Flea3Camera {
   void SetGamma(double& gamma);
 
   // Trigger
-  void SetTrigger(int& trigger_source, int& trigger_polarity);
+  void SetTrigger(int& trigger_source, int& trigger_polarity,
+                  int &trigger_mode);
   bool PollForTriggerReady();
   bool FireSoftwareTrigger();
 
