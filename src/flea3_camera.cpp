@@ -208,6 +208,27 @@ void Flea3Camera::SetFrameRate(double& frame_rate) {
   }
 }
 
+void Flea3Camera::setNonBlocking() {
+  FC2Config config;
+  PgrError(camera_.GetConfiguration(&config), "Failed to get configuration");
+  config.grabTimeout = TIMEOUT_NONE; // return immediately
+  PgrError(camera_.SetConfiguration(&config), "Failed to set configuration");
+}
+
+void Flea3Camera::setBlocking() {
+  FC2Config config;
+  PgrError(camera_.GetConfiguration(&config), "Failed to get configuration");
+  config.grabTimeout = 1000; // set to one second;
+  PgrError(camera_.SetConfiguration(&config), "Failed to set configuration");
+}
+
+bool Flea3Camera::GrabImageNonBlocking(sensor_msgs::Image& image_msg) {
+  setNonBlocking();
+  bool ret = GrabImage(image_msg);
+  setBlocking();
+  return (ret);
+}
+
 bool Flea3Camera::GrabImage(sensor_msgs::Image& image_msg) {
   if (!(camera_.IsConnected() && capturing_)) return false;
 
