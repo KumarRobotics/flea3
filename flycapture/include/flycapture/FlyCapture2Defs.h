@@ -1,22 +1,22 @@
 //=============================================================================
-// Copyright © 2008 Point Grey Research, Inc. All Rights Reserved.
+// Copyright © 2017 FLIR Integrated Imaging Solutions, Inc. All Rights Reserved.
 //
-// This software is the confidential and proprietary information of Point
-// Grey Research, Inc. ("Confidential Information").  You shall not
-// disclose such Confidential Information and shall use it only in
+// This software is the confidential and proprietary information of FLIR
+// Integrated Imaging Solutions, Inc. ("Confidential Information"). You
+// shall not disclose such Confidential Information and shall use it only in
 // accordance with the terms of the license agreement you entered into
-// with Point Grey Research, Inc. (PGR).
+// with FLIR Integrated Imaging Solutions, Inc. (FLIR).
 //
-// PGR MAKES NO REPRESENTATIONS OR WARRANTIES ABOUT THE SUITABILITY OF THE
+// FLIR MAKES NO REPRESENTATIONS OR WARRANTIES ABOUT THE SUITABILITY OF THE
 // SOFTWARE, EITHER EXPRESSED OR IMPLIED, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
-// PURPOSE, OR NON-INFRINGEMENT. PGR SHALL NOT BE LIABLE FOR ANY DAMAGES
+// PURPOSE, OR NON-INFRINGEMENT. FLIR SHALL NOT BE LIABLE FOR ANY DAMAGES
 // SUFFERED BY LICENSEE AS A RESULT OF USING, MODIFYING OR DISTRIBUTING
 // THIS SOFTWARE OR ITS DERIVATIVES.
 //=============================================================================
 
 //=============================================================================
-// $Id: FlyCapture2Defs.h 286572 2016-06-15 01:49:45Z matthewg $
+// $Id: FlyCapture2Defs.h 318533 2017-03-09 22:41:16Z corinal $
 //=============================================================================
 
 #ifndef PGR_FC2_FLYCAPTURE2DEFS_H
@@ -421,6 +421,8 @@ namespace FlyCapture2
 		IPP,
 		/** Best quality but much faster than rigorous. */
 		DIRECTIONAL_FILTER,
+		/** Weighted pixel average from different directions*/
+		WEIGHTED_DIRECTIONAL_FILTER,
 
 		COLOR_PROCESSING_ALGORITHM_FORCE_32BITS = FULL_32BIT_VALUE
 	};
@@ -907,7 +909,7 @@ namespace FlyCapture2
 		/** Grab mode for the camera. The default is DROP_FRAMES. */
 		GrabMode grabMode;
 
-		/** This parameter enables RetireveBuffer to run in high
+		/** This parameter enables RetrieveBuffer to run in high
 		 *	performance mode.  This means that any interaction
 		 *  with the camera, other then grabbing the image is disabled.
 		 *	Currently Retrieve buffer reads registers on the camera to
