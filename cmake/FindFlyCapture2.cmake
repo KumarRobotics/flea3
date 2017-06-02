@@ -79,7 +79,7 @@ list(APPEND FlyCapture2_CHECK_INCLUDE_DIRS
 list(APPEND FlyCapture2_CHECK_LIBRARY_DIRS
     ${FLYCAPTURE_DIR}/flycapture/lib
     )
-if(MSVC)
+if(WIN32)
     set(FlyCapture2_HINTS "C:/Program Files/Point Grey Research/FlyCapture2" CACHE PATH "Path to FlyCapture2 SDK" FORCE)
 endif()
 
@@ -101,6 +101,12 @@ if(FlyCapture2_HINTS AND EXISTS ${FlyCapture2_HINTS})
                     set(FlyCapture2_DLL_DIR_HINTS ${FlyCapture2_DLL_DIR_HINTS}/vs2015)
                 endif()
             endif()
+        else()
+            message(WARNING "You don't seem to be using MSVC. FlyCapture is likely to not link!!!")
+            message(WARNING "Consider using the C library instead?")
+            #This script would need further work to point you to that library
+            set(FlyCapture2_LIBRARY_DIR_HINTS ${FlyCapture2_LIBRARY_DIR_HINTS}/vs2015)
+            set(FlyCapture2_DLL_DIR_HINTS ${FlyCapture2_DLL_DIR_HINTS}/vs2015)
         endif()
     endif()
 
@@ -167,6 +173,10 @@ else()
 
             set(vTail "_v140")
         endif()
+    else()
+        #Have the latest one and hope for the best
+        set(vTail "_v140")
+    endif()
 
 #        message("FlyCapture2_LIBRARY_DIR_HINTS: ${FlyCapture2_LIBRARY_DIR_HINTS} ")
 #        message("FlyCapture2_LIB_NAME: FlyCapture2${vTail}.lib")
@@ -174,32 +184,31 @@ else()
 #        message("FlyCapture2_LIB_NAME_DEBUG: FlyCapture2d${vTail}.lib")
 #        message("FlyCapture2_DLL_NAME_DEBUG: FlyCapture2d${vTail}.dll")
 
-        find_library(FlyCapture2_LIBRARY
-            NAMES FlyCapture2${vTail}.lib
-            PATHS ${FlyCapture2_LIBRARY_DIR_HINTS}
-            ${FlyCapture2_CHECK_LIBRARY_DIRS}
-            )
-        find_library(FlyCapture2_LIBRARY_DEBUG
-            NAMES FlyCapture2d${vTail}.lib
-            PATHS ${FlyCapture2_LIBRARY_DIR_HINTS}
-            ${FlyCapture2_CHECK_LIBRARY_DIRS}
-            )
-        find_file(FlyCapture2_RUNTIME
-            NAMES FlyCapture2${vTail}.dll
-            PATHS ${FlyCapture2_DLL_DIR_HINTS}
-            ${FlyCapture2_CHECK_LIBRARY_DIRS}
-            )
-        find_file(FlyCapture2_RUNTIME_DEBUG
-            NAMES FlyCapture2d${vTail}.dll
-            PATHS ${FlyCapture2_DLL_DIR_HINTS}
-            ${FlyCapture2_CHECK_LIBRARY_DIRS}
-            )
+    find_library(FlyCapture2_LIBRARY
+        NAMES FlyCapture2${vTail}.lib
+        PATHS ${FlyCapture2_LIBRARY_DIR_HINTS}
+        ${FlyCapture2_CHECK_LIBRARY_DIRS}
+        )
+    find_library(FlyCapture2_LIBRARY_DEBUG
+        NAMES FlyCapture2d${vTail}.lib
+        PATHS ${FlyCapture2_LIBRARY_DIR_HINTS}
+        ${FlyCapture2_CHECK_LIBRARY_DIRS}
+        )
+    find_file(FlyCapture2_RUNTIME
+        NAMES FlyCapture2${vTail}.dll
+        PATHS ${FlyCapture2_DLL_DIR_HINTS}
+        ${FlyCapture2_CHECK_LIBRARY_DIRS}
+        )
+    find_file(FlyCapture2_RUNTIME_DEBUG
+        NAMES FlyCapture2d${vTail}.dll
+        PATHS ${FlyCapture2_DLL_DIR_HINTS}
+        ${FlyCapture2_CHECK_LIBRARY_DIRS}
+        )
 #        message("FlyCapture2_LIBRARY: ${FlyCapture2_LIBRARY}")
 #        message("FlyCapture2_LIBRARY_DEBUG: ${FlyCapture2_LIBRARY_DEBUG}")
 #        message("FlyCapture2_RUNTIME: ${FlyCapture2_RUNTIME}")
 #        message("FlyCapture2_RUNTIME_DEBUG: ${FlyCapture2_RUNTIME_DEBUG}")
 
-    endif()
 endif()
 
 if(NOT FlyCapture2_LIBRARY OR NOT EXISTS ${FlyCapture2_LIBRARY})
@@ -211,9 +220,7 @@ elseif(MSVC AND MSVC_VERSION LESS "1400")
         "FlyCapture2 SDK not available for VC earlier than VC9"
         "Please use an SDK newer than Visual Studio 2005")
 else()
-    # ~~TODO~~: need to fix this hacky solution for getting FlyCapture2_LIBRARY_DIR
-    #string(REGEX MATCH ".*/" FlyCapture2_LIBRARY_DIR ${FlyCapture2_LIBRARY})
-    # DONE?
+
     get_filename_component(FlyCapture2_LIBRARY_DIR ${FlyCapture2_LIBRARY} DIRECTORY)
     message(STATUS "flycapture library dir found: " ${FlyCapture2_LIBRARY_DIR})
 
@@ -235,7 +242,7 @@ endif()
 # Catch case when caller has set FlyCapture2_INCLUDE_DIR in the cache / GUI and
 # thus FIND_[PATH/LIBRARY] are not called, but specified locations are
 # invalid, otherwise we would report the library as found.
-if(MSVC)
+if(WIN32)
     if(FlyCapture2_INCLUDE_DIR AND NOT EXISTS ${FlyCapture2_INCLUDE_DIR}/FlyCapture2.h)
         FlyCapture2_REPORT_NOT_FOUND("Caller defined FlyCapture2_INCLUDE_DIR: "
             ${FlyCapture2_INCLUDE_DIR}
@@ -252,7 +259,7 @@ endif()
 # Set standard CMake FindPackage variables if found.
 if(FlyCapture2_FOUND)
     set(FlyCapture2_INCLUDE_DIRS ${FlyCapture2_INCLUDE_DIR})
-    if(MSVC)
+    if(WIN32)
         get_filename_component(FlyCapture2_LIBRARIES ${FlyCapture2_LIBRARY} NAME)
         get_filename_component(FlyCapture2_LIBRARIES_DEBUG ${FlyCapture2_LIBRARY_DEBUG} NAME)
         #The use for these is "install(FILES)" so full paths are fine
