@@ -20,6 +20,7 @@
     <arg name="pixel_format" default="22"/>
     <arg name="exposure" default="true"/>
     <arg name="auto_exposure" default="true"/>
+    <arg name="exposure_value" default="1.0"/>
     <arg name="auto_shutter" default="true"/>
     <arg name="shutter_ms" default="10.0"/>
     <arg name="auto_gain" default="true"/>
@@ -53,6 +54,7 @@
         <param name="pixel_format" type="int" value="$(arg pixel_format)"/>
         <param name="exposure" type="bool" value="$(arg exposure)"/>
         <param name="auto_exposure" type="bool" value="$(arg auto_exposure)"/>
+        <param name="exposure_value" type="double" value="$(arg exposure_value)"/>
         <param name="auto_shutter" type="bool" value="$(arg auto_shutter)"/>
         <param name="shutter_ms" type="double" value="$(arg shutter_ms)"/>
         <param name="auto_gain" type="bool" value="$(arg auto_gain)"/>
