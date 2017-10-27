@@ -72,7 +72,8 @@ class Flea3Camera {
   // Strobe
   void SetStrobe(int& strobe_control, int& polarity);
   void TurnOffStrobe(const std::vector<int>& strobes);
-
+  void EnableOutputVoltage(bool enabled);
+  
   // Blocking/Non-blocking
   void setNonBlocking();
   void setBlocking();
