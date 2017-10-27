@@ -136,7 +136,7 @@ void Flea3Camera::Configure(Config& config) {
   // Trigger
   SetTrigger(config.trigger_source, config.trigger_polarity,
              config.trigger_mode);
-
+  EnableOutputVoltage(config.enable_output_voltage);
   // Save this config
   config_ = config;
 }
@@ -458,6 +458,29 @@ void Flea3Camera::TurnOffStrobe(const std::vector<int>& strobes) {
     PgrWarn(camera_.SetStrobe(&strobe), "Failed to set strobe");
   }
 }
+
+void Flea3Camera::EnableOutputVoltage(bool enabled) {
+  //
+  // The blackfly cameras have a 3.3V output on Pin 3 (red),
+  // that must be enabled to provide high-level for signalling.
+  //
+  unsigned int old_val;
+  const unsigned int OUTPUT_VOLTAGE_ENABLE_REG = 0x19d0;
+  Error error = camera_.ReadRegister(OUTPUT_VOLTAGE_ENABLE_REG, &old_val); 
+  if (error != PGRERROR_OK) {
+    // maybe register doesn't exist? Whatever.
+    return;
+  }
+  if ((old_val & 0x80000000) == 0) {
+    // feature not available, probably not a blackfly
+    return;
+  }
+  // bit 0  set to 1 means output voltage enabled
+  unsigned int new_val = enabled ? (old_val | 0x1) : (old_val & ~0x00000001);
+  PgrWarn(camera_.WriteRegister(OUTPUT_VOLTAGE_ENABLE_REG, new_val),
+          "failed to enable output voltage!");
+}
+
 
 bool Flea3Camera::PollForTriggerReady() {
   const unsigned int software_trigger_addr = 0x62C;
