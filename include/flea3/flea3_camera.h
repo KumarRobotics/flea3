@@ -20,17 +20,20 @@ class Flea3Camera {
   const std::string& serial() const { return serial_; }
   const unsigned serial_id() const { return std::atoi(serial_.c_str()); }
 
-  bool GrabImage(sensor_msgs::Image& image_msg);
-  bool GrabImageNonBlocking(sensor_msgs::Image& image_msg);
+  bool GrabImage(sensor_msgs::Image& image_msg, Image *pgr_image = NULL);
+  bool GrabImageNonBlocking(sensor_msgs::Image& image_msg, Image *pgr_image = NULL);
 //  void GrabImageMetadata(flea3::ImageMetadata& image_metadata_msg);
 
   bool Connect();
   void Configure(Config& config);
-  void StartCapture();
+  void StartCapture(ImageEventCallback callbackFn = NULL,
+                    const void *pcallbackData = NULL);
   void StopCapture();
   bool RequestSingle();
   double GetShutterTimeSec();
-
+  void SetShutter(bool& auto_shutter, double& shutter_ms);
+  void SetGain(bool& auto_gain, double& gain_db);
+  void SetEnableTimeStamps(bool tsOnOff);
  private:
   std::string AvailableDevice();
 
@@ -58,8 +61,6 @@ class Flea3Camera {
   void SetRawBayerOutput(bool& raw_bayer_output);
 
   void SetExposure(bool& exposure, bool& auto_exposure, double& exposure_value);
-  void SetShutter(bool& auto_shutter, double& shutter_ms);
-  void SetGain(bool& auto_gain, double& gain_db);
   void SetBrightness(double& brightness);
   void SetGamma(double& gamma);
 
