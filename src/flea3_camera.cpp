@@ -91,9 +91,12 @@ std::string Flea3Camera::AvailableDevice() {
   return devices;
 }
 
-void Flea3Camera::StartCapture() {
+void Flea3Camera::StartCapture(ImageEventCallback callbackFn,
+                               const void *pcallbackData) {
   if (camera_.IsConnected() && !capturing_) {
-    PgrError(camera_.StartCapture(), "Failed to start capture");
+    std::cout << "subscribing to capture: " << callbackFn << " " << pcallbackData << std::endl;
+    PgrError(camera_.StartCapture(callbackFn, pcallbackData),
+             "Failed to start capture");
     capturing_ = true;
   }
 }
@@ -222,23 +225,22 @@ void Flea3Camera::setBlocking() {
   PgrError(camera_.SetConfiguration(&config), "Failed to set configuration");
 }
 
-bool Flea3Camera::GrabImageNonBlocking(sensor_msgs::Image& image_msg) {
+bool Flea3Camera::GrabImageNonBlocking(sensor_msgs::Image& image_msg, Image *pgr_image) {
   setNonBlocking();
-  bool ret = GrabImage(image_msg);
+  bool ret = GrabImage(image_msg, pgr_image);
   setBlocking();
   return (ret);
 }
 
-bool Flea3Camera::GrabImage(sensor_msgs::Image& image_msg) {
+bool Flea3Camera::GrabImage(sensor_msgs::Image& image_msg, Image *pgr_image) {
   if (!(camera_.IsConnected() && capturing_)) return false;
-
   Image image;
-  const auto error = camera_.RetrieveBuffer(&image);
+  Image *img = pgr_image ? pgr_image : &image;
+  const auto error = camera_.RetrieveBuffer(img);
   if (error != PGRERROR_OK) return false;
-
   // Set image encodings
-  const auto bayer_format = image.GetBayerTileFormat();
-  const auto bits_per_pixel = image.GetBitsPerPixel();
+  const auto bayer_format = img->GetBayerTileFormat();
+  const auto bits_per_pixel = img->GetBitsPerPixel();
   std::string encoding;
   if (camera_info_.isColorCamera) {
     if (bayer_format != NONE) {
@@ -251,9 +253,10 @@ bool Flea3Camera::GrabImage(sensor_msgs::Image& image_msg) {
   } else {
     encoding = PixelFormatToEncoding(bits_per_pixel);
   }
-  return sensor_msgs::fillImage(image_msg, encoding, image.GetRows(),
-                                image.GetCols(), image.GetStride(),
-                                image.GetData());
+  bool ret = sensor_msgs::fillImage(image_msg, encoding, img->GetRows(),
+                                img->GetCols(), img->GetStride(),
+                                img->GetData());
+  return ret;
 }
 
 // void Flea3Camera::GrabImageMetadata(ImageMetadata& image_metadata_msg) {
@@ -522,5 +525,16 @@ double Flea3Camera::GetShutterTimeSec() {
   }
   return config_.shutter_ms / 1000.0;
 }
+
+void Flea3Camera::SetEnableTimeStamps(bool tsOnOff) {
+  unsigned int reg_val = 0;
+  Error error = camera_.ReadRegister(0x12F8, &reg_val);
+  if (error == PGRERROR_OK) {
+    int tsBit = tsOnOff ? (1 << 0) : 0;
+    WriteRegister(camera_, 0x12F8, (reg_val & ~0x1) | tsBit);
+  }
+}
+
+  
 
 }  // namespace flea3
