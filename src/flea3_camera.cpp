@@ -94,7 +94,6 @@ std::string Flea3Camera::AvailableDevice() {
 void Flea3Camera::StartCapture(ImageEventCallback callbackFn,
                                const void *pcallbackData) {
   if (camera_.IsConnected() && !capturing_) {
-    std::cout << "subscribing to capture: " << callbackFn << " " << pcallbackData << std::endl;
     PgrError(camera_.StartCapture(callbackFn, pcallbackData),
              "Failed to start capture");
     capturing_ = true;
