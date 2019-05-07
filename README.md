@@ -1,4 +1,4 @@
-# flea3
+# flea3 (not maintained anymore, use https://github.com/ros-drivers/flir_camera_driver instead)
 
 ![image](https://s-media-cache-ak0.pinimg.com/736x/93/3b/2b/933b2b91ddf297db234e2f6d1e046e5c.jpg)
 
