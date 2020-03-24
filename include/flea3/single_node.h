@@ -1,9 +1,9 @@
-#ifndef FLEA3_SINGLE_NODE_H_
-#define FLEA3_SINGLE_NODE_H_
+#pragma once
 
-#include "flea3/flea3_ros.h"
-#include "flea3/Flea3DynConfig.h"
 #include <camera_base/camera_node_base.h>
+
+#include "flea3/Flea3DynConfig.h"
+#include "flea3/flea3_ros.h"
 
 namespace flea3 {
 
@@ -21,5 +21,3 @@ class SingleNode : public camera_base::CameraNodeBase<Config> {
 };
 
 }  // namespace flea3
-
-#endif  // FLEA3_SINGLE_NODE_H_

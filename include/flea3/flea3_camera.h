@@ -1,10 +1,10 @@
-#ifndef FLEA3_FLEA3_CAMERA_H_
-#define FLEA3_FLEA3_CAMERA_H_
+#pragma once
 
 #include <flycapture/FlyCapture2.h>
-#include "flea3/Flea3DynConfig.h"
-#include <sensor_msgs/Image.h>
 #include <sensor_msgs/CameraInfo.h>
+#include <sensor_msgs/Image.h>
+
+#include "flea3/Flea3DynConfig.h"
 //#include "flea3/ImageMetadata.h"
 
 namespace flea3 {
@@ -18,24 +18,29 @@ class Flea3Camera {
   ~Flea3Camera();
 
   const std::string& serial() const { return serial_; }
-  const unsigned serial_id() const { return std::atoi(serial_.c_str()); }
+  unsigned serial_id() const { return std::atoi(serial_.c_str()); }
 
-  bool GrabImage(sensor_msgs::Image& image_msg, Image *pgr_image = NULL);
-  bool GrabImageNonBlocking(sensor_msgs::Image& image_msg, Image *pgr_image = NULL);
-//  void GrabImageMetadata(flea3::ImageMetadata& image_metadata_msg);
+  bool GrabImage(sensor_msgs::Image& image_msg);
+  bool GrabImageNonBlocking(sensor_msgs::Image& image_msg);
+  bool GrabImageWithTimestamp(sensor_msgs::Image& image_msg, double* ts);
+  bool GrabImageNonBlockingWithTimestamp(sensor_msgs::Image& image_msg,
+                                         double* ts);
+  //  void GrabImageMetadata(flea3::ImageMetadata& image_metadata_msg);
 
   bool Connect();
   void Configure(Config& config);
-  void StartCapture(ImageEventCallback callbackFn = NULL,
-                    const void *pcallbackData = NULL);
+  void StartCapture();
   void StopCapture();
   bool RequestSingle();
   double GetShutterTimeSec();
+  double GetGain();
   void SetShutter(bool& auto_shutter, double& shutter_ms);
   void SetGain(bool& auto_gain, double& gain_db);
-  void SetEnableTimeStamps(bool tsOnOff);
+  bool FireSoftwareTrigger();
+
  private:
   std::string AvailableDevice();
+  void enableTimestamps();
 
   // Start up
   void EnableAutoWhiteBalance();
@@ -66,19 +71,17 @@ class Flea3Camera {
 
   // Trigger
   void SetTrigger(int& trigger_source, int& trigger_polarity,
-                  int &trigger_mode);
+                  int& trigger_mode);
   bool PollForTriggerReady();
-  bool FireSoftwareTrigger();
 
   // Strobe
   void SetStrobe(int& strobe_control, int& polarity);
   void TurnOffStrobe(const std::vector<int>& strobes);
-  void EnableOutputVoltage(bool enabled);
-  
+
   // Blocking/Non-blocking
   void setNonBlocking();
   void setBlocking();
-  
+
   bool capturing_{false};
   BusManager bus_manager_;
   Camera camera_;
@@ -88,5 +91,3 @@ class Flea3Camera {
 };
 
 }  // namespace flea3
-
-#endif  // FLEA3_FLEA3_CAMERA_H_

@@ -14,11 +14,6 @@ bool Flea3Ros::Grab(const sensor_msgs::ImagePtr& image_msg,
   return flea3_.GrabImage(*image_msg);
 }
 
-bool Flea3Ros::GrabNonBlocking(const sensor_msgs::ImagePtr& image_msg,
-                               const sensor_msgs::CameraInfoPtr& cinfo_msg) {
-  return flea3_.GrabImageNonBlocking(*image_msg);
-}
-
 // void Flea3Ros::PublishImageMetadata(const ros::Time& time) {
 //  auto image_metadata_msg = boost::make_shared<ImageMetadata>();
 //  flea3_.GrabImageMetadata(*image_metadata_msg);

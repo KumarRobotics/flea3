@@ -1,7 +1,9 @@
 #include "flea3/flea3_setting.h"
-#include <sensor_msgs/image_encodings.h>
-#include <iostream>
+
 #include <ros/ros.h>
+#include <sensor_msgs/image_encodings.h>
+
+#include <iostream>
 
 namespace flea3 {
 

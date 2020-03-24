@@ -1,6 +1,7 @@
 #include <iostream>
 #include <sstream>
 #include <stdexcept>
+
 #include "flea3/flea3_setting.h"
 
 using namespace FlyCapture2;
@@ -60,10 +61,12 @@ int main(int argc, char** argv) {
     } else {
       // No cameras found
       std::cout << "No PointGrey cameras detected on this computer."
-                << std::endl << std::endl;
+                << std::endl
+                << std::endl;
 
       std::cout << "Note that you may need to restart udev and "
-                   "replug your camera, eg:" << std::endl
+                   "replug your camera, eg:"
+                << std::endl
                 << "  sudo service udev restart" << std::endl;
     }
   } catch (const std::runtime_error& e) {

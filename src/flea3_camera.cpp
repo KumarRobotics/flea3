@@ -1,7 +1,10 @@
 #include "flea3/flea3_camera.h"
-#include "flea3/flea3_setting.h"
+
 #include <sensor_msgs/fill_image.h>
+
 #include <utility>
+
+#include "flea3/flea3_setting.h"
 
 namespace flea3 {
 
@@ -72,6 +75,8 @@ void Flea3Camera::SetConfiguration() {
   // Maybe put this in configure
   //  config.highPerformanceRetrieveBuffer = true;
 
+  enableTimestamps();  // is this the right place to enable timestamps?
+
   // Set the camera configuration
   PgrError(camera_.SetConfiguration(&config), "Failed to set configuration");
 }
@@ -91,11 +96,9 @@ std::string Flea3Camera::AvailableDevice() {
   return devices;
 }
 
-void Flea3Camera::StartCapture(ImageEventCallback callbackFn,
-                               const void *pcallbackData) {
+void Flea3Camera::StartCapture() {
   if (camera_.IsConnected() && !capturing_) {
-    PgrError(camera_.StartCapture(callbackFn, pcallbackData),
-             "Failed to start capture");
+    PgrError(camera_.StartCapture(), "Failed to start capture");
     capturing_ = true;
   }
 }
@@ -138,7 +141,7 @@ void Flea3Camera::Configure(Config& config) {
   // Trigger
   SetTrigger(config.trigger_source, config.trigger_polarity,
              config.trigger_mode);
-  EnableOutputVoltage(config.enable_output_voltage);
+
   // Save this config
   config_ = config;
 }
@@ -213,49 +216,96 @@ void Flea3Camera::SetFrameRate(double& frame_rate) {
 void Flea3Camera::setNonBlocking() {
   FC2Config config;
   PgrError(camera_.GetConfiguration(&config), "Failed to get configuration");
-  config.grabTimeout = TIMEOUT_NONE; // return immediately
+  config.grabTimeout = TIMEOUT_NONE;  // return immediately
   PgrError(camera_.SetConfiguration(&config), "Failed to set configuration");
 }
 
 void Flea3Camera::setBlocking() {
   FC2Config config;
   PgrError(camera_.GetConfiguration(&config), "Failed to get configuration");
-  config.grabTimeout = 1000; // set to one second;
+  config.grabTimeout = 1000;  // set to one second;
   PgrError(camera_.SetConfiguration(&config), "Failed to set configuration");
 }
 
-bool Flea3Camera::GrabImageNonBlocking(sensor_msgs::Image& image_msg, Image *pgr_image) {
+void Flea3Camera::enableTimestamps() {
+  unsigned int reg_val = 0;
+  Error error = camera_.ReadRegister(0x12F8, &reg_val);
+  if (error == PGRERROR_OK) {
+    WriteRegister(camera_, 0x12F8, (1 << 0) | (reg_val));
+  }
+}
+
+static inline void get_encoding(const Image& image, bool isColorCam,
+                                std::string* encoding) {
+  // Set image encodings
+  const auto bayer_format = image.GetBayerTileFormat();
+  const auto bits_per_pixel = image.GetBitsPerPixel();
+  if (isColorCam) {
+    if (bayer_format != NONE) {
+      *encoding = BayerFormatToEncoding(bayer_format, bits_per_pixel);
+    } else if (bits_per_pixel == 24) {
+      *encoding = sensor_msgs::image_encodings::RGB8;
+    } else {
+      *encoding = PixelFormatToEncoding(bits_per_pixel);
+    }
+  } else {
+    *encoding = PixelFormatToEncoding(bits_per_pixel);
+  }
+}
+
+bool Flea3Camera::GrabImageNonBlocking(sensor_msgs::Image& image_msg) {
   setNonBlocking();
-  bool ret = GrabImage(image_msg, pgr_image);
+  bool ret = GrabImage(image_msg);
   setBlocking();
   return (ret);
 }
 
-bool Flea3Camera::GrabImage(sensor_msgs::Image& image_msg, Image *pgr_image) {
+bool Flea3Camera::GrabImageNonBlockingWithTimestamp(
+    sensor_msgs::Image& image_msg, double* ts) {
+  setNonBlocking();
+  bool ret = GrabImageWithTimestamp(image_msg, ts);
+  setBlocking();
+  return (ret);
+}
+
+bool Flea3Camera::GrabImage(sensor_msgs::Image& image_msg) {
   if (!(camera_.IsConnected() && capturing_)) return false;
+
   Image image;
-  Image *img = pgr_image ? pgr_image : &image;
-  const auto error = camera_.RetrieveBuffer(img);
+  const auto error = camera_.RetrieveBuffer(&image);
   if (error != PGRERROR_OK) return false;
-  // Set image encodings
-  const auto bayer_format = img->GetBayerTileFormat();
-  const auto bits_per_pixel = img->GetBitsPerPixel();
+
   std::string encoding;
-  if (camera_info_.isColorCamera) {
-    if (bayer_format != NONE) {
-      encoding = BayerFormatToEncoding(bayer_format, bits_per_pixel);
-    } else if (bits_per_pixel == 24) {
-      encoding = sensor_msgs::image_encodings::RGB8;
-    } else {
-      encoding = PixelFormatToEncoding(bits_per_pixel);
-    }
-  } else {
-    encoding = PixelFormatToEncoding(bits_per_pixel);
-  }
-  bool ret = sensor_msgs::fillImage(image_msg, encoding, img->GetRows(),
-                                img->GetCols(), img->GetStride(),
-                                img->GetData());
-  return ret;
+  get_encoding(image, camera_info_.isColorCamera, &encoding);
+  return sensor_msgs::fillImage(image_msg, encoding, image.GetRows(),
+                                image.GetCols(), image.GetStride(),
+                                image.GetData());
+}
+
+bool Flea3Camera::GrabImageWithTimestamp(sensor_msgs::Image& image_msg,
+                                         double* tstamp) {
+  if (!(camera_.IsConnected() && capturing_)) return false;
+
+  Image image;
+  const auto error = camera_.RetrieveBuffer(&image);
+  if (error != PGRERROR_OK) return false;
+  // 2) Then read it from the image structure:
+  //
+  //    TimeStamp ts = image.GetTimeStamp();
+  //    now look at ptgrey manuals for meaning of fields:
+  //    ts.cycleSeconds, ts.cycleCount, ts.cycleOffset
+  TimeStamp ts = image.GetTimeStamp();
+  const double CYCLE_COUNT_TO_SEC = 0.000125;                    // 8kHz
+  const double CYCLE_OFFSET_TO_SEC = CYCLE_COUNT_TO_SEC / 4096;  // 12 bit
+
+  *tstamp = ts.cycleSeconds + ts.cycleCount * CYCLE_COUNT_TO_SEC +
+            ts.cycleOffset * CYCLE_OFFSET_TO_SEC;
+
+  std::string encoding;
+  get_encoding(image, camera_info_.isColorCamera, &encoding);
+  return sensor_msgs::fillImage(image_msg, encoding, image.GetRows(),
+                                image.GetCols(), image.GetStride(),
+                                image.GetData());
 }
 
 // void Flea3Camera::GrabImageMetadata(ImageMetadata& image_metadata_msg) {
@@ -387,8 +437,8 @@ void Flea3Camera::SetRoi(const Format7Info& format7_info,
   format7_settings.offsetY = height_setting.second;
 }
 
-  void Flea3Camera::SetTrigger(int& trigger_source, int& trigger_polarity,
-                               int &trigger_mode) {
+void Flea3Camera::SetTrigger(int& trigger_source, int& trigger_polarity,
+                             int& trigger_mode) {
   TriggerModeInfo trigger_mode_info;
   PgrWarn(camera_.GetTriggerModeInfo(&trigger_mode_info),
           "Failed to get trigger mode info");
@@ -416,12 +466,14 @@ void Flea3Camera::SetRoi(const Format7Info& format7_info,
   trigger_mode_struct.onOff = true;
   trigger_mode_struct.mode = trigger_mode;
   trigger_mode_struct.parameter = 0;
-  
+
   // Source 7 means software trigger
   trigger_mode_struct.source = trigger_source;
   trigger_mode_struct.polarity = trigger_polarity;
-  PgrWarn(camera_.SetTriggerMode(&trigger_mode_struct), "Failed to set trigger mode");
-  PgrWarn(camera_.GetTriggerMode(&trigger_mode_struct), "Failed to get trigger mode");
+  PgrWarn(camera_.SetTriggerMode(&trigger_mode_struct),
+          "Failed to set trigger mode");
+  PgrWarn(camera_.GetTriggerMode(&trigger_mode_struct),
+          "Failed to get trigger mode");
   trigger_source = trigger_mode_struct.source;
   trigger_polarity = trigger_mode_struct.polarity;
   trigger_mode = trigger_mode_struct.mode;
@@ -460,29 +512,6 @@ void Flea3Camera::TurnOffStrobe(const std::vector<int>& strobes) {
     PgrWarn(camera_.SetStrobe(&strobe), "Failed to set strobe");
   }
 }
-
-void Flea3Camera::EnableOutputVoltage(bool enabled) {
-  //
-  // The blackfly cameras have a 3.3V output on Pin 3 (red),
-  // that must be enabled to provide high-level for signalling.
-  //
-  unsigned int old_val;
-  const unsigned int OUTPUT_VOLTAGE_ENABLE_REG = 0x19d0;
-  Error error = camera_.ReadRegister(OUTPUT_VOLTAGE_ENABLE_REG, &old_val); 
-  if (error != PGRERROR_OK) {
-    // maybe register doesn't exist? Whatever.
-    return;
-  }
-  if ((old_val & 0x80000000) == 0) {
-    // feature not available, probably not a blackfly
-    return;
-  }
-  // bit 0  set to 1 means output voltage enabled
-  unsigned int new_val = enabled ? (old_val | 0x1) : (old_val & ~0x00000001);
-  PgrWarn(camera_.WriteRegister(OUTPUT_VOLTAGE_ENABLE_REG, new_val),
-          "failed to enable output voltage!");
-}
-
 
 bool Flea3Camera::PollForTriggerReady() {
   const unsigned int software_trigger_addr = 0x62C;
@@ -525,15 +554,14 @@ double Flea3Camera::GetShutterTimeSec() {
   return config_.shutter_ms / 1000.0;
 }
 
-void Flea3Camera::SetEnableTimeStamps(bool tsOnOff) {
-  unsigned int reg_val = 0;
-  Error error = camera_.ReadRegister(0x12F8, &reg_val);
-  if (error == PGRERROR_OK) {
-    int tsBit = tsOnOff ? (1 << 0) : 0;
-    WriteRegister(camera_, 0x12F8, (reg_val & ~0x1) | tsBit);
+double Flea3Camera::GetGain() {
+  if (config_.auto_gain) {
+    AbsValueConversion abs_val;
+    // Register for abs_val_gain, which is in db
+    camera_.ReadRegister(0x928, &abs_val.uint_val);
+    return abs_val.float_val;
   }
+  return config_.gain_db;
 }
-
-  
 
 }  // namespace flea3

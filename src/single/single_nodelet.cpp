@@ -1,7 +1,7 @@
-#include "flea3/single_node.h"
-
 #include <nodelet/nodelet.h>
 #include <pluginlib/class_list_macros.h>
+
+#include "flea3/single_node.h"
 
 namespace flea3 {
 

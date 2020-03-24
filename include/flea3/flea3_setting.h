@@ -1,7 +1,7 @@
-#ifndef FLEA3_SETTING_H_
-#define FLEA3_SETTING_H_
+#pragma once
 
 #include <flycapture/FlyCapture2.h>
+
 #include <string>
 
 namespace flea3 {
@@ -47,5 +47,3 @@ bool IsVideoModeAndFrameRateSupported(Camera& camera,
 std::pair<int, int> CenterRoi(int size, int max_size, int step);
 
 }  // namespace flea3
-
-#endif  // FLEA3_SETTING_H_
